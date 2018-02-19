@@ -1,4 +1,7 @@
-.n3DS{
-    background: yellow;
-    color: black;
+a:hover{
+    cursor: pointer;
+}
+a.margenBoton{
+    margin-top: 40px;
+    margin-left: 40px;
 }
