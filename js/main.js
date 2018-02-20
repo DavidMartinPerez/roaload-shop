@@ -3,8 +3,32 @@ $(document).ready(function(){
         $(".cuerpo").append(result);
     }});
 });//Document ready
-
-
+//Rediracionamiento
+function mostrarVersiones(){
+    $.ajax({url: "version.php", success: function(result){
+        $(".cuerpo").empty();
+        $(".cuerpo").html(result);
+    }});
+}
+function mostrarJuegos(){
+    $.ajax({url: "juego.php", success: function(result){
+        $(".cuerpo").empty();
+        $(".cuerpo").html(result);
+    }});
+}
+function mostrarPlataformas(){
+    $.ajax({url: "plataforma.php", success: function(result){
+        $(".cuerpo").empty();
+        $(".cuerpo").html(result);
+    }});
+}
+function mostrarEdiciones(){
+    $.ajax({url: "edicion.php", success: function(result){
+        $(".cuerpo").empty();
+        $(".cuerpo").html(result);
+    }});
+}
+//#####Funcioens para Versiones
 //Funcion para borra version / DELETE
 function borrar(idVersion){
     var idEliminar =  idVersion.id;
@@ -42,7 +66,7 @@ function borrar(idVersion){
 //-Funcion para una nueva Version / CREATE
 function nuevaVersion(){
     $(".btn-version").addClass("disabled");
-    $.get("formulario.php",
+    $.get("formularioVersion.php",
     function(data){
         $(".tablaVersiones > tbody").prepend(data);
         $( ".fechapicker" ).datepicker({
@@ -139,7 +163,7 @@ function modificarVersion(elemento){
                   fechaV: "Fecha obligatoria"
                 },
                 submitHandler: function(form){//Si el validate funciona lo manda post
-                    $.post("actualizarDatos.php",{
+                    $.post("actualizarDatosVersion.php",{
                         idVersion: idVersionModificar,
                         juegoActualizado: $("#idJuegoModificar").val(), //value del option
                         nombreJuegoActualizado: $("#idJuegoModificar option:selected").text(), //texto del option
@@ -190,3 +214,14 @@ function ordenar(){
         $(".cuerpo").html(data);
     });
 }
+
+//######################################!./Verisiones
+//############################ Funciones para juegos
+
+//########!./Juegos
+//##############################!./Ediciones
+
+//########!./Edicion
+//##############################!./Plataforma
+
+//########!./Plataforma

@@ -2,6 +2,7 @@ $(document).ready(function(){
     $.ajax({url: "script/principal.php", success: function(result){
         $(".principalCuerpo").html(result);
     }});
+    $(".dropdown-button").dropdown();
 });//Document ready
 $(function() {
     $('.perfil-navbar').sideNav({

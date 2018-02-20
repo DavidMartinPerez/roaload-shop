@@ -25,27 +25,33 @@
 		<script src="../js/main.js"></script>
 	</head>
 	<body>
-		<div class="container">
-			<h1>Administración de Versiones de juegos</h1>
-			<br>
-			<h5>Filtros</h5>
-			<div class="row">
-				<select class="selectOrdenar browser-default col s3">
-					<option value="nombreJuego">Juego</option>
-					<option value="nombreEdicion">Edicion</option>
-					<option value="nombrePlataforma">Plataforma</option>
-					<option value="precio">Precio</option>
-					<option value="stock">Stock</option>
-					<option value="fechaSalida">Fecha Salida</option>
-					<option value="nombreDistribuidora">Distribuidora</option>
-				</select>
-				<select class="selectAlternal browser-default col s3">
-					<option value="ASC">Ascendente</option>
-					<option value="DESC">Descendente</option>
-				</select>
-				<button class="btn" onclick="ordenar()">Filtrar</button>
+		<!-- Navbar goes here -->
+
+		<!-- Page Layout here -->
+		<div class="row">
+
+			<div class="col s2 cabecera">
+				<div class="center-align logo-admin">
+					<img width="100%" src="../img/favicon.png"/>
+				</div>
+				<h5>Administrar Productos</h5>
+				<a class="btn btn-menu" onclick="mostrarVersiones()">Versiones</a>
+				<a class="btn btn-menu" onclick="mostrarJuegos()">Juegos</a>
+				<a class="btn btn-menu" onclick="mostrarPlataformas()">Plataformas</a>
+				<a class="btn btn-menu" onclick="mostrarEdiciones()">Ediciones</a>
+    			<h5>Administrar Clientes</h5>
+				<a class="btn btn-menu">Usuarios</a>
+				<a class="btn btn-menu">Pedidos</a>
+				<a class="btn btn-menu">Comentarios</a>
+				<a class="btn btn-menu">Consultas</a>
+
 			</div>
-			<div class="cuerpo"></div>
+
+			<div class="col s9">
+				<div class="container">
+					<div class="cuerpo"></div>
+				</div>
+			</div>
 		</div>
 		<!-- dialogos -->
 		<!-- Dialogo para eliminar version -->
@@ -56,7 +62,7 @@
 		  <p>Plataforma: <span class="plataformaVersionEliminar"></span></p>
 		</div>
 		<div class="modificarVersionModal" title="¡Modificar!" style="display:none">
-			<?php include "formularioModificar.php" ?>
+			<?php include "formularioModificarVersion.php" ?>
 		</div>
 	</body>
 </html>

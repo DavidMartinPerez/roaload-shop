@@ -75,10 +75,6 @@
 				padding-top: 6px;
 				height: 280px;
 			}
-			.carta-titulo{
-				margin-bottom: -10px;
-				height: 80px;
-			}
 			.carta-descrip{
 				height: 80px;
 				overflow: hidden;
@@ -87,29 +83,30 @@
 				margin-bottom: 30px;
 			}
 		</style>
-		<script>
-			$(document).ready(function(){
-				$.ajax({url: "login.php", success: function(result){
-					$(".login-form").html(result);
-				}});
-			});
-		</script>
 	</head>
 	<body>
 		<!-- sideNav sobre el perfil del usuario -->
-		<ul id="slide-out" class="side-nav">
-			<?php if(2 > 1){?>
-			<div class="login-form container"></div>
-		<?php } else { ?>
-			<div class="perfil container"> b </div>
-		<?php } ?>
+		<ul id="slide-out" class="side-nav" style="background-color: #ee6e73">
+			<?php include "perfil.php" ?>
 		</ul>
 		<!-- ./sideNav -->
+		<!-- Dropdown Structure -->
+		<ul id="dropdown1" class="dropdown-content">
+			<li><a href="#!">3DS</a></li>
+			<li class="divider"></li>
+			<li><a href="#!">Accesorios</a></li>
+			<li><a href="#!">Reservas</a></li>
+		</ul>
 		<!-- navbar -->
 		<nav>
 			<div class="nav-wrapper">
 				<a href="#!" class="brand-logo">World of Wanted</a>
-				<ul class="right hide-on-med-and-down">
+				<ul id="nav-mobile" class="right hide-on-med-and-down">
+					<li><a>NSW</a></li>
+			        <li><a>PS4</a></li>
+					<li><a>XO</a></li>
+					<li><a>PC</a></li>
+					<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
 					<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
 				</ul>
 			</div>
@@ -139,7 +136,7 @@
           </div>
           <div class="footer-copyright">
             <div class="container">
-            © 2014 Copyright Text
+            © 2018 David Martín Pérez
             <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
             </div>
           </div>

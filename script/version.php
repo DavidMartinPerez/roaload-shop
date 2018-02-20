@@ -11,7 +11,25 @@
 	$bd->close();
 ?>
 
-
+<h1>Administración de Versiones de juegos</h1>
+<br>
+<h5>Filtros</h5>
+<div class="row">
+	<select class="selectOrdenar browser-default col s3">
+		<option value="nombreJuego">Juego</option>
+		<option value="nombreEdicion">Edicion</option>
+		<option value="nombrePlataforma">Plataforma</option>
+		<option value="precio">Precio</option>
+		<option value="stock">Stock</option>
+		<option value="fechaSalida">Fecha Salida</option>
+		<option value="nombreDistribuidora">Distribuidora</option>
+	</select>
+	<select class="selectAlternal browser-default col s3">
+		<option value="ASC">Ascendente</option>
+		<option value="DESC">Descendente</option>
+	</select>
+	<button class="btn" onclick="ordenar()">Filtrar</button>
+</div>
 <a  class="versionNueva "><button type="button" onclick="nuevaVersion()" class="btn-version btn btn-default navbar-btn">Nueva Versión</button></a>
 <h2 >Lista de Juegos con sus Versiones</h2>
 <table class="highlight bordered tablaVersiones">
