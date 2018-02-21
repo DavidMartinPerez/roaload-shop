@@ -1,50 +1,55 @@
 <?php
     session_start();
-
-    $mensaje = "";
-    $status = 0;
-    if(isset($_POST["usr"])){
-        //conectar a la base de datos
-        $bd = @new mysqli("localhost", "root", "") ;
-        //comprobamos si se conecta a la base de datos
-        if($bd->connect_errno) {
-            die("**Error $bd->connect_errno: $bd->connect_error.<br/>") ;
-        }
-        // Seleciionamos la base de datos que vamos a Usuario
-        $bd->select_db("tienda");
-
-        // Escapar las cadenas para que no nos entren con trucos
-        $usuario = $bd->real_escape_string($_POST["usr"]) ;
-        $contrasena = $bd->real_escape_string($_POST["pass"]) ;
-
-        // Comprobamos si existe el usuario en la base de datos
-        $sql = "SELECT * FROM usuario WHERE nombreUsuario='$usuario' AND contrasena='$contrasena';";
-        $reg = $bd->query($sql); //Ejecuta la sentencia
-        if($reg->num_rows) {
-            //crear las variables de sesion necesarias
-            $_SESSION["id"] = session_id();
-            $_SESSION["usr"] = $_POST["usr"];
-            $_SESSION["entrada"] = time();
-
-            //localizamos si el usuario es administrador...
-            $row = mysqli_fetch_assoc($reg);
-            $_SESSION["datos"] = serialize([
-                        				$row["nombre"],
-                        				$row["apellido"],
-                                        $row["idUsuario"]
-                        			]);
-            echo $row["admin"];
-            if ($row["admin"] == 0){
-                $_SESSION["rol"] = "usuario";
-            } else {
-                $_SESSION["rol"] = "admin";
+    if(isset($_GET["exit"])){
+        $_SESSION = [];
+		session_destroy();
+        header("Location: ../index.php");
+    } else {
+        $mensaje = "";
+        $status = 0;
+        if(isset($_POST["usr"])){
+            //conectar a la base de datos
+            $bd = @new mysqli("localhost", "root", "") ;
+            //comprobamos si se conecta a la base de datos
+            if($bd->connect_errno) {
+                die("**Error $bd->connect_errno: $bd->connect_error.<br/>") ;
             }
-            header("Location: ../index.php");
+            // Seleciionamos la base de datos que vamos a Usuario
+            $bd->select_db("tienda");
 
-        } else {
-            $mensaje = "<p style='color:red'> ¡Datos no correctos!:(</p>";
+            // Escapar las cadenas para que no nos entren con trucos
+            $usuario = $bd->real_escape_string($_POST["usr"]) ;
+            $contrasena = $bd->real_escape_string($_POST["pass"]) ;
+
+            // Comprobamos si existe el usuario en la base de datos
+            $sql = "SELECT * FROM usuario WHERE nombreUsuario='$usuario' AND contrasena='$contrasena';";
+            $reg = $bd->query($sql); //Ejecuta la sentencia
+            if($reg->num_rows) {
+                //crear las variables de sesion necesarias
+                $_SESSION["id"] = session_id();
+                $_SESSION["usr"] = $_POST["usr"];
+                $_SESSION["entrada"] = time();
+
+                //localizamos si el usuario es administrador...
+                $row = mysqli_fetch_assoc($reg);
+                $_SESSION["datos"] = serialize([
+                    $row["nombre"],
+                    $row["apellido"],
+                    $row["idUsuario"]
+                ]);
+                echo $row["admin"];
+                if ($row["admin"] == 0){
+                    $_SESSION["rol"] = "usuario";
+                } else {
+                    $_SESSION["rol"] = "admin";
+                }
+                header("Location: ../index.php");
+
+            } else {
+                $mensaje = "<p style='color:red'> ¡Datos no correctos!:(</p>";
+            }
+            $bd->close();
         }
-        $bd->close();
     }
 
 ?>
