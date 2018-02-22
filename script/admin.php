@@ -33,7 +33,7 @@
 	</head>
 	<body>
 		<!-- Navbar goes here -->
-
+		<a class="btn" href="../">Volver atrás</a>
 		<!-- Page Layout here -->
 		<div class="row">
 
@@ -70,6 +70,9 @@
 		</div>
 		<div class="modificarVersionModal" title="¡Modificar!" style="display:none">
 			<?php include "formularioModificarVersion.php" ?>
+		</div>
+		<div class="añadirVersionModal" title="¡Añadir Juego!" style="display:none">
+			<?php include "formularioVersion.php" ?>
 		</div>
 	</body>
 </html>

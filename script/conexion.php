@@ -1,4 +1,6 @@
 <?php
+    // require_once "../constantes/constantes.php";
+
     $bd = @new mysqli('localhost', 'root', '');
     $bd->select_db('tienda');
 

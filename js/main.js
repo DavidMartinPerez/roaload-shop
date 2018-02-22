@@ -63,64 +63,71 @@ function borrar(idVersion){
         }
     });
 }
-//-Funcion para una nueva Version / CREATE
+//Funcion para una nueva Version / CREATE
 function nuevaVersion(){
-    $(".btn-version").addClass("disabled");
-    $.get("formularioVersion.php",
-    function(data){
-        $(".tablaVersiones > tbody").prepend(data);
-        $( ".fechapicker" ).datepicker({
-                        firstDay: 1,
-                        dateFormat: "yy-mm-dd"
+    $( ".fechapicker" ).datepicker({
+                            firstDay: 1,
+                            dateFormat: "yy-mm-dd"
+                        });
+    $( ".añadirVersionModal" ).dialog({
+        resizable: false,
+        height: "auto",
+        width: 350,
+        show: {
+            effect: "drop",
+            direction: "up",
+        },
+        open: function(){ //validacion
+            $("#formNuevoVersion").validate({//Validate
+                rules: {
+                    precioNV: {required: true,min: 1, maxlength: 10},
+                    stockNV:{required:true, min: 1, maxlength: 10},
+                    fechaNV:{required:true}
+                },
+                messages:{
+                    precioNV: "No puede ser negativo",
+                    stockNV: "No puede ser negativo",
+                    fechaNV: "Fecha obligatoria"
+                },
+                submitHandler: function(form){//Si el validate funciona lo manda post
+                    $.post("guardarVersion.php", {
+                        idNombre:  $("#idJuegoNuevo").val(),
+                        nombreJuego: $("#idJuegoNuevo option:selected").text(),
+                        idEdicion: $("#edicionJuegoNuevo").val(),
+                        idPtl: $("#plataformaJuegoNuevo").val(),
+                        nombrePlataforma: $("#plataformaJuegoNuevo option:selected").text(),
+                        idDis: $("#idDistribuidora").val(),
+                        precio: $("#precioNuevo").val(),
+                        stock: $("#stockNuevo").val(),
+                        fecha: $("#fechaNueva").val()
+                    },function(data){
+                        $(".cuerpo").empty();
+                        $(".cuerpo").append(data);
                     });
+                    $(".añadirVersionModal").dialog( "close" );
+                    $("label.error").empty();
+                    $("#formNuevoVersion")[0].reset();
+                }
+            })
+        },
+        hide: {
+            effect: "drop",
+            direction: "down",
+        },
+        modal: true,
+        buttons: {
+            Añadir: function() {
+                $("#formNuevoVersion").submit();
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+                $("label.error").empty();
+                $("#formNuevoVersion")[0].reset();
+            }
+        }
     });
-    // $("#formNuevoVersion").validate({//Validate
-    //     rules: {
-    //       precioNV: {required: true,min: 1, maxlength: 10},
-    //       stockNV:{required:true, min: 1, maxlength: 10},
-    //       fechaNV:{required:true}
-    //     },
-    //     messages:{
-    //       precioNV: "Longitud errónea",
-    //       stockNV: "Longitud errónea",
-    //       fechaNV: "Fecha obligatoria"
-    //     },
-    //     submitHandler: function(form){//Si el validate funciona lo manda post
-    //         guardarDatos();
-    //     }
-    // })
 }
-// function validar(){
-//     $("#formNuevoVersion").submit();
-// }
-
-function cancelarFormulario(){
-    $("#formularioNuevo").fadeOut(350, function(){
-        $("#formularioNuevo").remove();
-    });
-    $(".btn-version").removeClass("disabled");
-}
-
-function guardarDatos(){
-    $.post("guardarVersion.php", {
-        idNombre:  $("#idJuegoNuevo").val(),
-        nombreJuego: $("#idJuegoNuevo option:selected").text(),
-        idEdicion: $("#edicionJuegoNuevo").val(),
-        idPtl: $("#plataformaJuegoNuevo").val(),
-        nombrePlataforma: $("#plataformaJuegoNuevo option:selected").text(),
-        idDis: $("#idDistribuidora").val(),
-        precio: $("#precioNuevo").val(),
-        stock: $("#stockNuevo").val(),
-        fecha: $("#fechaNueva").val()
-    },function(data){
-        $(".cuerpo").empty();
-        $(".cuerpo").append(data);
-    });
-    Materialize.toast('¡Juego creado!', 3000, 'green rounded', );
-    Materialize.toast('¡Error! Intentalo más tarde', 3000, 'red rounded', );
-    Materialize.toast('Ya existe este juego :S', 3000, 'orange rounded', );
-}
-
+//#########################################
 //Modificar el registro / UPDATE
 function modificarVersion(elemento){
     // Recoger los datos

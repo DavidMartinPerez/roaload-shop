@@ -15,49 +15,52 @@
     $bd->close();
 
 ?>
-<tr id="formularioNuevo">
-    <td>
-        <form id="formNuevoVersion">
+<div id="formularioNuevo">
+    <form id="formNuevoVersion">
+        <div>
+            Juego:<br>
             <select id="idJuegoNuevo" class="browser-default" name="juegoNV" required>
                 <option selected disabled>-- Busque su juego --</option>
 				<?php while($rowJuego = mysqli_fetch_assoc($regJuego)){ ?>
 					<option value="<?=$rowJuego["idJuego"] ?>"><?=$rowJuego["nombreJuego"] ?></option>
 				<?php } ?>
             </select>
-    </td>
-    <td>
-        <select id="edicionJuegoNuevo" class="browser-default" name="edicionNV">
-            <?php while($rowEdi = mysqli_fetch_assoc($regEdicion)){ ?>
-                <option value="<?=$rowEdi["idEdicion"] ?>"><?=$rowEdi["nombreEdicion"] ?></option>
-            <?php } ?>
-        </select>
-    </td>
-    <td>
-        <select id="plataformaJuegoNuevo" class="browser-default" name="plataformaNV">
-            <?php while($rowPtl = mysqli_fetch_assoc($regPlataforma)){ ?>
-                <option value="<?=$rowPtl["idPlataforma"] ?>"><?=$rowPtl["nombrePlataforma"] ?></option>
-            <?php } ?>
-        </select>
-    </td>
-    <td>
-        <input type="number" id="precioNuevo" val="1" name="precioNV" />
-    </td>
-    <td>
-        <input type="number" id="stockNuevo" val="1" name="stockNV" />
-    </td>
-    <td>
-        <input id="fechaNueva" type="text" class="fechapicker" name="fechaNV">
-    </td>
-    <td>
-        <select id="idDistribuidora" class="browser-default" name="disNV">
-            <?php while($rowDis = mysqli_fetch_assoc($regDistribuidora)){ ?>
-                <option value="<?=$rowDis["idDistribuidora"] ?>"><?=$rowDis["nombreDistribuidora"] ?></option>
-            <?php } ?>
-        </select>
-    </td>
-    <td>
-        <a><button type="submit" onclick="guardarDatos()" class="btn amber darken-4"><i class="material-icons">save</i></button></a>
-        <a><button type="button" onclick="cancelarFormulario();" class="btn red darken-2"><i class="material-icons">cancel</i></button></a>
-        </form>
-    </td>
-</tr>
+        </div>
+        <div><br>
+            Edicion:<br>
+            <select id="edicionJuegoNuevo" class="browser-default" name="edicionNV">
+                <?php while($rowEdi = mysqli_fetch_assoc($regEdicion)){ ?>
+                    <option value="<?=$rowEdi["idEdicion"] ?>"><?=$rowEdi["nombreEdicion"] ?></option>
+                <?php } ?>
+            </select>
+        </div><br>
+        <div>
+            Plataforma:<br>
+            <select id="plataformaJuegoNuevo" class="browser-default" name="plataformaNV">
+                <?php while($rowPtl = mysqli_fetch_assoc($regPlataforma)){ ?>
+                    <option value="<?=$rowPtl["idPlataforma"] ?>"><?=$rowPtl["nombrePlataforma"] ?></option>
+                <?php } ?>
+            </select>
+        </div><br>
+        <div>
+            Precio:<br>
+            <input type="number" id="precioNuevo" val="1" name="precioNV" />
+        </div><br>
+        <div>
+            Stock:<br>
+            <input type="number" id="stockNuevo" val="1" name="stockNV" />
+        </div><br>
+        <div>
+            Fecha Salida:<br>
+            <input id="fechaNueva" type="text" class="fechapicker" name="fechaNV">
+        </div><br>
+        <div>
+            Distribuidora:<br>
+            <select id="idDistribuidora" class="browser-default" name="disNV">
+                <?php while($rowDis = mysqli_fetch_assoc($regDistribuidora)){ ?>
+                    <option value="<?=$rowDis["idDistribuidora"] ?>"><?=$rowDis["nombreDistribuidora"] ?></option>
+                <?php } ?>
+            </select>
+        </div>
+    </form>
+</div>
