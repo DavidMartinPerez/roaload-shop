@@ -1,6 +1,5 @@
 <?php
-	$bd = @new mysqli("localhost", "root", "");
-	$bd->select_db("tienda");
+	include "conexion.php";
 	$campo = $_POST["campo"] ?? "idVersion"; //Sera por el campo que ordene
 	$orden = $_POST["orden"] ?? "ASC";  //Sera ASC o DESC
 	$sqlJOIN = "SELECT version.idVersion, juego.idJuego, ptl.idPlataforma, ed.idEdicion, dis.idDistribuidora, juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora

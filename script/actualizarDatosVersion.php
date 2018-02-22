@@ -1,7 +1,6 @@
 <?php
 
-    $bd = @new mysqli("localhost", "root", "");
-    $bd->select_db("tienda");
+    include "conexion.php";
     //los valores recogidos para la tablaVersiones
     $nombreTabla = $_POST["nombreJuegoActualizado"];
     $edicionTabla = $_POST["edicionJuegoActualizado"];

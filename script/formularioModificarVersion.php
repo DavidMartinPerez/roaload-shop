@@ -1,7 +1,6 @@
 <?php
     // Conexiones a la BBDD para sacar los registros de los select.
-    $bd = @new mysqli("localhost", "root", "");
-    $bd->select_db("tienda");
+    include "conexion.php";
 
     $sqlSelectDistribuidora = "SELECT idDistribuidora, nombreDistribuidora FROM `distribuidora` WHERE 1";
     $sqlSelectPlataforma = "SELECT idPlataforma, nombrePlataforma FROM `plataforma` WHERE 1";

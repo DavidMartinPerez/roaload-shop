@@ -1,7 +1,6 @@
 <?php
     $id = $_GET["id"];
-    $bd = @new mysqli("localhost", "root", "");
-	$bd->select_db("tienda");
+    include "conexion.php";
     $sql = "SELECT version.idVersion, version.img , juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, juego.descripJuego ,version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora
             FROM videojuego juego, versionjuego version, edicion ed , plataforma ptl, distribuidora dis
             where version.idEdicion = ed.idEdicion AND version.idJuego = juego.idJuego AND version.idPlataforma = ptl.idPlataforma AND version.idDistribuidora = dis.idDistribuidora AND version.idVersion = $id";

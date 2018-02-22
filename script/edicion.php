@@ -1,6 +1,5 @@
 <?php
-	$bd = @new mysqli("localhost", "root", "");
-	$bd->select_db("tienda");
+	include "conexion.php";
 	$campo = $_POST["campo"] ?? "idVersion"; //Sera por el campo que ordene
 	$orden = $_POST["orden"] ?? "ASC";  //Sera ASC o DESC
 	$sql = "SELECT * FROM `edicion`";

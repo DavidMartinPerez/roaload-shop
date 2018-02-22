@@ -1,3 +1,10 @@
+<?php
+	session_start();
+	if ($_SESSION["rol"] != "admin"){
+		die(header("Location: ../"));
+	}
+
+?>
 <!DOCTYPE html>
 <html>
 	<head>

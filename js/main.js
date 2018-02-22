@@ -104,8 +104,10 @@ function cancelarFormulario(){
 function guardarDatos(){
     $.post("guardarVersion.php", {
         idNombre:  $("#idJuegoNuevo").val(),
+        nombreJuego: $("#idJuegoNuevo option:selected").text(),
         idEdicion: $("#edicionJuegoNuevo").val(),
         idPtl: $("#plataformaJuegoNuevo").val(),
+        nombrePlataforma: $("#plataformaJuegoNuevo option:selected").text(),
         idDis: $("#idDistribuidora").val(),
         precio: $("#precioNuevo").val(),
         stock: $("#stockNuevo").val(),
@@ -114,6 +116,9 @@ function guardarDatos(){
         $(".cuerpo").empty();
         $(".cuerpo").append(data);
     });
+    Materialize.toast('¡Juego creado!', 3000, 'green rounded', );
+    Materialize.toast('¡Error! Intentalo más tarde', 3000, 'red rounded', );
+    Materialize.toast('Ya existe este juego :S', 3000, 'orange rounded', );
 }
 
 //Modificar el registro / UPDATE

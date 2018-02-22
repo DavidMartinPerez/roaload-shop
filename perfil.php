@@ -25,7 +25,7 @@
 	<li><a><i class="material-icons">mail</i>Mensajes</a></li>
 	<?php
 		if($_SESSION["rol"] == "admin"){?>
-			<li><a><i class="material-icons">brightness_low</i>Administrar Web</a></li>
+			<li><a href="script/admin.php" ><i class="material-icons">brightness_low</i>Administrar Web</a></li>
 		<?php } else  { ?>
 			<li><a><i class="material-icons">loyalty</i>Pedidos pendientes</a></li>
 			<li><a><i class="material-icons">history</i>Historial de pedidos</a></li>
@@ -35,8 +35,7 @@
 
 	<li><a class="subheader">Cesta</a></li>
 	<?php
-	$bd = @new mysqli("localhost", "root", "");
-	$bd->select_db("tienda");
+	include "script/conexion.php";
 	$usuario = unserialize($_SESSION['datos'])[2];
 	//select para sacar la id del pedido que tengas pediente que es el que no esta realizado aun
 	$sqlPedidoPendiente = "SELECT p.idPedido, u.idUsuario FROM pedido p, usuario u where p.idEstado = 1 AND p.idUsuario = u.idUsuario and u.idUsuario = $usuario";
@@ -57,10 +56,14 @@
 			$rowN = mysqli_fetch_assoc($regNombre);
 			?>
 			<li><a><?=$rowN["nombreJuego"]?> - <?=$rowN["precio"]?>€</a></li>
-		<?php }
-	} else {
-		echo "no tiene ningun pedido";
-	}
+			<?php }
+		} else {
+			if($_SESSION["rol"] == "admin"){
+				echo "<li><a>No cobras lo suficiente >w<</a></li>";
+			} else {
+				echo "no tiene ningun pedido";
+			}
+		}
 	$bd->close();
 
 	?>

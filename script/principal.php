@@ -1,6 +1,5 @@
 <?php
-	$bd = @new mysqli("localhost", "root", "");
-	$bd->select_db("tienda");
+	include "conexion.php";
 
 	$sql = "SELECT version.idVersion, juego.idJuego, ptl.idPlataforma, version.img , ed.idEdicion, dis.idDistribuidora, juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora
 	 			FROM videojuego juego, versionjuego version, edicion ed , plataforma ptl, distribuidora dis
@@ -11,32 +10,7 @@
 
 <div class="row">
     <!-- contenido lateral -->
-    <!-- <div class="col s12 m2 l2">
-        <div class="btn especial-semana panel-categorias">
-            Categoria de la semana
-        </div>
-        <div class="NSW btn panel-categorias">
-            Nintendo Switch
-        </div>
-        <div class="btn panel-categorias PS4">
-            PS4
-        </div>
-        <div class="XONE btn panel-categorias">
-            Xbox ONE
-        </div>
-        <div class="PC btn panel-categorias">
-            pc
-        </div>
-        <div class="btn panel-categorias n3DS">
-            3DS
-        </div>
-        <div class="btn panel-categorias">
-            accesorios
-        </div>
-        <div class="btn reserva panel-categorias">
-            reservas
-        </div>
-    </div> -->
+    
     <!-- ./contenido lateral -->
     <!-- Contenido de la web -->
     <div class="container cuerpo">

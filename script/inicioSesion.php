@@ -11,9 +11,7 @@
             //conectar a la base de datos
             $bd = @new mysqli("localhost", "root", "") ;
             //comprobamos si se conecta a la base de datos
-            if($bd->connect_errno) {
-                die("**Error $bd->connect_errno: $bd->connect_error.<br/>") ;
-            }
+            
             // Seleciionamos la base de datos que vamos a Usuario
             $bd->select_db("tienda");
 
