@@ -11,6 +11,7 @@
 * Mysql - mysqli
 * Materializecss
 * API Telegram con bot
+* Ajax (en pesatañas estables)
 
 ## Detalles de la APP
 
@@ -33,21 +34,13 @@ Vista general de la primera página de la web puede ser accedida por cualquier p
 Para iniciar sesión a la derecha del navbar redirecciona a iniciarSesion.php si no estas conectado.
 Todos los datos de la sesión se guardan en sesiones.
 
-![Login](/00/login.png "Login")
-
-Login Error
-
-![LoginErr](/00/loginerr.png "Login Error")
+![Login](/00/login.png "Login") ![LoginErr](/00/loginerr.png "Login Error")
 
 * Registrarse
 Para registrarnos en el login tenemos la opción Registrarse, cuando te registre te pide iniciar sesión.
 Las contraseñas estan cifradas y comprueba si hay usuarios con ese nombre.
 
-![Registro](/00/registro.png "Registro")
-
-Registro Error
-
-![RegistroErr](/00/registroerr.png "Registro")
+![Registro](/00/registro.png "Registro") ![RegistroErr](/00/registroerr.png "Registro")
 
 * Perfil en el index
 Nuestro perfil y opciones a funcionalidades estan en un sidenav al lado derecho con un desplegable.
@@ -58,3 +51,14 @@ Actualmente no tiene ninguna funcionalidad de cesta en el usuario simple (Alguno
 El perfil del administrador solo sale si eres administrador de la web, el perfil cual añade el a la administración de la web.
 
 ![PerfilAdmi](/00/perfiladmi.png "Perfil Administrador")
+
+* Apartado de administración de productos
+Podemos crear tanto como productos los cuales se llaman "Versiones", plataformas nuevas, ediciones y información sobre un juego.
+Aun no esta disponible la administración de pedidos.
+
+    * Versiones
+//Añadir contenido
+![Administacion](/00/administacionVersiones.png)
+
+    * Ediciones
+    En la cual sale listado de las ediciones disponibles y
