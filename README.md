@@ -65,8 +65,18 @@ Podemos crear tanto como productos los cuales se llaman "Versiones", plataformas
 Aun no esta disponible la administración de pedidos.
 
     * Versiones
-//Añadir contenido
-![Administacion](/00/administacionVersiones.png "Administación Principal")
+    Esta parte es la cual donde se crean los productos que se muestran en la página principal
+    Lista las Versiones existentes - Con filtros
+
+    ![Administacion](/00/administacionVersiones.png "Administación Principal")
+
+    En esta sección tenemos para crear una nueva en la cual entera en acción la Api de Telegram
+
+    ![nuevaVersion](/00/nuevaversion.png "Nueva Version")
+
+    El mensaje que manda a Telegram es el cual con esos datos
+    El formato del mensaje sera modificado cuando se añadan fotos y más información de los productos.
+    ![telegram](/00/telegram_mensaje.jpeg "Mensaje en telegram")
 
     * Ediciones / Plataformas / Juego
     (Estas pestañas son muy parecidas y solo pondré una sección)
