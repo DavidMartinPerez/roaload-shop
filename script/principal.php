@@ -10,7 +10,7 @@
 
 <div class="row">
     <!-- contenido lateral -->
-    
+
     <!-- ./contenido lateral -->
     <!-- Contenido de la web -->
     <div class="container cuerpo">
@@ -37,7 +37,7 @@
 	                        <div class="card-image">
 	                            <a id="<?=$row['idVersion']?>" onclick="infoVersion(this);"><img class="tamaño-img" src="img/caratula/<?=$img ?>"></a>
 	                        </div>
-	                        <p class="card-title center-align"><?=$row["nombreJuego"]?></p>
+	                        <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
 							<p class="center-align"><?=$edicion ?>
 	                        <div class="card-action center-align">
 	                            <span class="pink-text"><?=$row["precio"]?> €</span>

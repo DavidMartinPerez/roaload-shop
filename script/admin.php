@@ -1,5 +1,8 @@
 <?php
 	session_start();
+	if (!isset($_SESSION["rol"])){
+		die(header("Location: inicioSesion.php"));
+	}
 	if ($_SESSION["rol"] != "admin"){
 		die(header("Location: ../"));
 	}
@@ -71,8 +74,17 @@
 		<div class="modificarVersionModal" title="¡Modificar!" style="display:none">
 			<?php include "formularioModificarVersion.php" ?>
 		</div>
-		<div class="añadirVersionModal" title="¡Añadir Juego!" style="display:none">
+		<div class="añadirVersionModal" title="¡Añadir Version!" style="display:none">
 			<?php include "formularioVersion.php" ?>
+		</div>
+		<div class="añadirJuegoModal" title="¡Añadir Juego!" style="display:none">
+			<?php include "formularioJuego.php" ?>
+		</div>
+		<div class="añadirEdicionModal" title="¡Añadir Edicion!" style="display:none">
+			<?php include "formularioEdicion.php" ?>
+		</div>
+		<div class="añadirPlataformaModal" title="¡Añadir Plataforma!" style="display:none">
+			<?php include "formularioPlataforma.php" ?>
 		</div>
 	</body>
 </html>

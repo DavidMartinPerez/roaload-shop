@@ -61,7 +61,7 @@
 			if($_SESSION["rol"] == "admin"){
 				echo "<li><a>No cobras lo suficiente >w<</a></li>";
 			} else {
-				echo "no tiene ningun pedido";
+				echo "<li><a>no tiene ningun producto</a><li>";
 			}
 		}
 	$bd->close();
@@ -70,8 +70,4 @@
 
 	<li><div class="divider"></div></li>
 	<li><a class="btn" href="script/inicioSesion.php?exit">Cerrar Sesión</a></li>
-<?php
-
-}echo $_SESSION["rol"]."<br> ";
-echo $_SESSION["usr"];
-echo unserialize($_SESSION['datos'])[2]; ?>
+<?php } ?>

@@ -76,7 +76,7 @@
 				height: 280px;
 			}
 			.carta-descrip{
-				height: 80px;
+				height: 100px;
 				overflow: hidden;
 			}
 			.carta-margin{
@@ -120,16 +120,17 @@
           <div class="container">
             <div class="row">
               <div class="col l6 s12">
-                <h5 class="white-text">Footer Content</h5>
-                <p class="grey-text text-lighten-4">You can use rows and columns here to organize your footer content.</p>
+                <h5 class="white-text">WOW-SHOP</h5>
+                <p class="grey-text text-lighten-4">Unete al grupo de Telegram para recibir notificaciones.</p>
+				<p>Link del chat: <a href="https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw" target="_blank">Aquí</a></p>
               </div>
               <div class="col l4 offset-l2 s12">
-                <h5 class="white-text">Links</h5>
+                <h5 class="white-text">Tecnologias utilizadas</h5>
                 <ul>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 1</a></li>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 2</a></li>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 3</a></li>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 4</a></li>
+                  <li><a class="grey-text text-lighten-3" href="#!">Materializecss</a></li>
+                  <li><a class="grey-text text-lighten-3" href="#!">PHP + Mysql</a></li>
+                  <li><a class="grey-text text-lighten-3" href="#!">Jquery</a></li>
+                  <li><a class="grey-text text-lighten-3" href="#!">Jquery ui</a></li>
                 </ul>
               </div>
             </div>

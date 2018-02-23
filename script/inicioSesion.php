@@ -9,18 +9,14 @@
         $status = 0;
         if(isset($_POST["usr"])){
             //conectar a la base de datos
-            $bd = @new mysqli("localhost", "root", "") ;
-            //comprobamos si se conecta a la base de datos
-            
-            // Seleciionamos la base de datos que vamos a Usuario
-            $bd->select_db("tienda");
+            include "conexion.php";
 
             // Escapar las cadenas para que no nos entren con trucos
             $usuario = $bd->real_escape_string($_POST["usr"]) ;
             $contrasena = $bd->real_escape_string($_POST["pass"]) ;
-
+            $pass = md5("$contrasena");
             // Comprobamos si existe el usuario en la base de datos
-            $sql = "SELECT * FROM usuario WHERE nombreUsuario='$usuario' AND contrasena='$contrasena';";
+            $sql = "SELECT * FROM usuario WHERE nombreUsuario='$usuario' AND contrasena='$pass';";
             $reg = $bd->query($sql); //Ejecuta la sentencia
             if($reg->num_rows) {
                 //crear las variables de sesion necesarias
@@ -99,12 +95,14 @@
             <center>
               <div class="row">
                 <button type="submit" name="btn_login" class="col s12 btn btn-large waves-effect indigo">Iniciar Sesión</button>
+                <?=$mensaje?>
               </div>
             </center>
           </form>
         </div>
       </div>
-      <a href="#!">Create una cuenta</a>
+      <a class="btn indigo" href="crearCuenta.php">Create una cuenta</a>
+      <a class="btn indigo" href="../">Volver atrás</a>
     </center>
 
     <div class="section"></div>

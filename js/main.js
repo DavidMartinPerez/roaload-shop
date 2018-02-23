@@ -229,11 +229,152 @@ function ordenar(){
 
 //######################################!./Verisiones
 //############################ Funciones para juegos
-
+function nuevoJuego(){
+    $( ".añadirJuegoModal" ).dialog({
+        resizable: false,
+        height: "auto",
+        width: 350,
+        show: {
+            effect: "drop",
+            direction: "up",
+        },
+        open: function(){ //validacion
+            $("#formNuevoJuego").validate({//Validate
+                rules: {
+                    nombre: {required: true,minlength: 1, maxlength: 20},
+                    des:{required:true,minlength: 1, maxlength: 20}
+                },
+                messages:{
+                    nombre: "Obligatorio",
+                    des: "Obligatorio"
+                },
+                submitHandler: function(form){//Si el validate funciona lo manda post
+                    $.post("guardarJuego.php", {
+                        nombre:  $("#nombreNuevo").val(),
+                        des:  $("#desNuevo").val()
+                    },function(data){
+                        $(".cuerpo").empty();
+                        $(".cuerpo").append(data);
+                    });
+                    $(".añadirJuegoModal").dialog( "close" );
+                    $("label.error").empty();
+                    $("#formNuevoJuego")[0].reset();
+                }
+            })
+        },
+        hide: {
+            effect: "drop",
+            direction: "down",
+        },
+        modal: true,
+        buttons: {
+            Añadir: function() {
+                $("#formNuevoJuego").submit();
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+                $("label.error").empty();
+                $("#formNuevoJuego")[0].reset();
+            }
+        }
+    });
+}
 //########!./Juegos
 //##############################!./Ediciones
-
+function nuevaEdicion(){
+    $( ".añadirEdicionModal" ).dialog({
+        resizable: false,
+        height: "auto",
+        width: 350,
+        show: {
+            effect: "drop",
+            direction: "up",
+        },
+        open: function(){ //validacion
+            $("#formNuevaEdicion").validate({//Validate
+                rules: {
+                    edicion: {required: true,minlength: 1, maxlength: 20}
+                },
+                messages:{
+                    edicion: "Obligatorio"
+                },
+                submitHandler: function(form){//Si el validate funciona lo manda post
+                    $.post("guardarEdicion.php", {
+                        nombre:  $("#edicionNueva").val()
+                    },function(data){
+                        $(".cuerpo").empty();
+                        $(".cuerpo").append(data);
+                    });
+                    $(".añadirEdicionModal").dialog( "close" );
+                    $("label.error").empty();
+                    $("#formNuevaEdicion")[0].reset();
+                }
+            })
+        },
+        hide: {
+            effect: "drop",
+            direction: "down",
+        },
+        modal: true,
+        buttons: {
+            Añadir: function() {
+                $("#formNuevaEdicion").submit();
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+                $("label.error").empty();
+                $("#formNuevoJuego")[0].reset();
+            }
+        }
+    });
+}
 //########!./Edicion
 //##############################!./Plataforma
-
+function nuevaPlataforma(){
+    $( ".añadirPlataformaModal" ).dialog({
+        resizable: false,
+        height: "auto",
+        width: 350,
+        show: {
+            effect: "drop",
+            direction: "up",
+        },
+        open: function(){ //validacion
+            $("#formNuevaPlataforma").validate({//Validate
+                rules: {
+                    plata: {required: true,minlength: 1, maxlength: 20}
+                },
+                messages:{
+                    plata: "Obligatorio"
+                },
+                submitHandler: function(form){//Si el validate funciona lo manda post
+                    $.post("guardarPlataforma.php", {
+                        nombre:  $("#plataNueva").val()
+                    },function(data){
+                        $(".cuerpo").empty();
+                        $(".cuerpo").append(data);
+                    });
+                    $(".añadirPlataformaModal").dialog( "close" );
+                    $("label.error").empty();
+                    $("#formNuevaPlataforma")[0].reset();
+                }
+            })
+        },
+        hide: {
+            effect: "drop",
+            direction: "down",
+        },
+        modal: true,
+        buttons: {
+            Añadir: function() {
+                $("#formNuevaPlataforma").submit();
+            },
+            Cancel: function() {
+                $( this ).dialog( "close" );
+                $("label.error").empty();
+                $("#formNuevoJuego")[0].reset();
+            }
+        }
+    });
+}
 //########!./Plataforma
