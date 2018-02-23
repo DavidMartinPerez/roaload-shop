@@ -34,12 +34,16 @@ Para iniciar sesión a la derecha del navbar redirecciona a iniciarSesion.php si
 
 ![Login](/00/login.png "Login")
 
+Login Error
+
 ![LoginErr](/00/loginerr.png "Login Error")
 
 * Registrarse
 Para registrarnos en el login tenemos la opción Registrarse, cuando te registre te pide iniciar sesión.
 
 ![Registro](/00/registro.png "Registro")
+
+Registro Error
 
 ![RegistroErr](/00/registroerr.png "Registro")
 
