@@ -76,40 +76,40 @@ El perfil del administrador solo sale si eres administrador de la web, el perfil
 Podemos crear tanto como productos los cuales se llaman "Versiones", plataformas nuevas, ediciones y información sobre un juego.
 Aun no esta disponible la administración de pedidos.
 
-    - Versiones
+* Versiones
 
-    Esta parte es la cual donde se crean los productos que se muestran en la página principal
-    Lista las Versiones existentes - Con filtros
+Esta parte es la cual donde se crean los productos que se muestran en la página principal
+Lista las Versiones existentes - Con filtros
 
-    ![Administacion](/00/administacionVersiones.png "Administación Principal")
+![Administacion](/00/administacionVersiones.png "Administación Principal")
 
-    En esta sección tenemos para crear una nueva en la cual entera en acción la Api de Telegram
+En esta sección tenemos para crear una nueva en la cual entera en acción la Api de Telegram
 
-    ![nuevaVersion](/00/nuevaversion.png "Nueva Version")
+![nuevaVersion](/00/nuevaversion.png "Nueva Version")
 
-    El mensaje que manda a Telegram es el cual con esos datos.
-    El formato del mensaje sera modificado cuando se añadan fotos y más información de los productos.
-    ![telegram](/00/telegram_mensaje.jpeg "Mensaje en telegram")
+El mensaje que manda a Telegram es el cual con esos datos.
+El formato del mensaje sera modificado cuando se añadan fotos y más información de los productos.
+![telegram](/00/telegram_mensaje.jpeg "Mensaje en telegram")
 
-    Sale un mensaje de confirmación como en los anteriores.
-    A la hora de modificar se modiffca en un formulario y se añade a la misma columna.
-    A la hora de eliminar se borra de la columna.
+Sale un mensaje de confirmación como en los anteriores.
+A la hora de modificar se modiffca en un formulario y se añade a la misma columna.
+A la hora de eliminar se borra de la columna.
 
-    - Ediciones / Plataformas / Juego
+* Ediciones / Plataformas / Juego
 
-    (Estas pestañas son muy parecidas y solo pondré una sección)
-    En la cual sale listado de las ediciones disponibles y puedes crear nuevas.
+(Estas pestañas son muy parecidas y solo pondré una sección)
+En la cual sale listado de las ediciones disponibles y puedes crear nuevas.
 
-    ![edicionlista](/00/edicionlista.png "Lista de ediciones")
+![edicionlista](/00/edicionlista.png "Lista de ediciones")
 
-    Crear edición / Formulario de nueva edición.
+Crear edición / Formulario de nueva edición.
 
-    ![edicionnueva](/00/edicionformu.png "Formulario edición")
+![edicionnueva](/00/edicionformu.png "Formulario edición")
 
-    Ya existe una edición.
+Ya existe una edición.
 
-    ![edicionexiste](/00/edicionexiste.png "Ya existe una edicion")
+![edicionexiste](/00/edicionexiste.png "Ya existe una edicion")
 
-    Edición creada.
+Edición creada.
 
-    ![edicioncreada](/00/edicioncreada.png "Exito")
+![edicioncreada](/00/edicioncreada.png "Exito")
