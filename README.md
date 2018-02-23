@@ -18,6 +18,13 @@
 Es una tienda en la cual puedes ver productos sin tener que iniciar sesión, le administrador puede crear nuevos productos.
 Faltan aun añadirle funcionalidad de comprar productos.
 
+## Datos para API
+
+Para poder comprobar que se mandan los datos correctamente(Más adelante se explica el funcionamiento),
+deberás unirte a este  grupo de telegram [Este link](https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw)
+- La API mas adelante se utilizará para avisar a los usuarios de sus pedidos(con permiso de los usuarios por las políticas de Telegram)
+- Y para servicios técnicos y dudas
+
 # Capturas de la APP
 Aquí enseñaremos parte de la aplicacion explicada (El diseño CSS puede ser diferente al original)
 
