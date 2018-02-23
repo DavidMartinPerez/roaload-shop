@@ -3,6 +3,6 @@
   // define('USER','root' );
   // define('PASS', '');
   // define('BD', 'tienda');
-  define('TOKEN', 'xx');
-  define('IDCHAT', 'xx');
+  define('TOKEN', '<Añadir TOKEN>');
+  define('IDCHAT', '<añadir IDCHAT>');
  ?>
