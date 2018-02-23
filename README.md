@@ -18,7 +18,7 @@
 Es una tienda en la cual puedes ver productos sin tener que iniciar sesión, le administrador puede crear nuevos productos.
 Faltan aun añadirle funcionalidad de comprar productos.
 
-## Datos para API
+## Detalles sobre la API
 
 Para poder comprobar que se mandan los datos correctamente(Más adelante se explica el funcionamiento),
 deberás unirte a este  grupo de telegram [Este link](https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw)
