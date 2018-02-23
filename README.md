@@ -30,7 +30,7 @@ Aquí enseñaremos parte de la aplicacion explicada (El diseño CSS puede ser di
 
 * E/R BBDD
 
-![ER](/00/er,png "Entidad/Relación")
+![ER](/00/er.png "Entidad/Relación")
 
 * Index
 Vista general de la primera página de la web puede ser accedida por cualquier persona.
