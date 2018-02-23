@@ -74,9 +74,13 @@ Aun no esta disponible la administración de pedidos.
 
     ![nuevaVersion](/00/nuevaversion.png "Nueva Version")
 
-    El mensaje que manda a Telegram es el cual con esos datos
+    El mensaje que manda a Telegram es el cual con esos datos.
     El formato del mensaje sera modificado cuando se añadan fotos y más información de los productos.
     ![telegram](/00/telegram_mensaje.jpeg "Mensaje en telegram")
+
+    Sale un mensaje de confirmación como en los anteriores.
+    A la hora de modificar se modiffca en un formulario y se añade a la misma columna.
+    A la hora de eliminar se borra de la columna.
 
     * Ediciones / Plataformas / Juego
     (Estas pestañas son muy parecidas y solo pondré una sección)
