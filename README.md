@@ -31,6 +31,7 @@ Vista general de la primera página de la web puede ser accedida por cualquier p
 
 * Login
 Para iniciar sesión a la derecha del navbar redirecciona a iniciarSesion.php si no estas conectado.
+Todos los datos de la sesión se guardan en sesiones.
 
 ![Login](/00/login.png "Login")
 
@@ -40,6 +41,7 @@ Login Error
 
 * Registrarse
 Para registrarnos en el login tenemos la opción Registrarse, cuando te registre te pide iniciar sesión.
+Las contraseñas estan cifradas y comprueba si hay usuarios con ese nombre.
 
 ![Registro](/00/registro.png "Registro")
 
