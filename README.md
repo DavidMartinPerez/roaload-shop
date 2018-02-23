@@ -52,7 +52,6 @@ Registro Error
 
 * Perfil en el index
 Nuestro perfil y opciones a funcionalidades estan en un sidenav al lado derecho con un desplegable.
-
 Actualmente no tiene ninguna funcionalidad de cesta en el usuario simple (Algunos usuarios tienen cestas de prueba).
 
 ![PerfilUsuario](/00/perfilusuario.png "Perfil Usuario")
@@ -62,14 +61,11 @@ El perfil del administrador solo sale si eres administrador de la web, el perfil
 ![PerfilAdmi](/00/perfiladmi.png "Perfil Administrador")
 
 * Apartado de administración de productos
-
 Podemos crear tanto como productos los cuales se llaman "Versiones", plataformas nuevas, ediciones y información sobre un juego.
-
 Aun no esta disponible la administración de pedidos.
 
     * Versiones
     Esta parte es la cual donde se crean los productos que se muestran en la página principal
-
     Lista las Versiones existentes - Con filtros
 
     ![Administacion](/00/administacionVersiones.png "Administación Principal")
@@ -79,15 +75,11 @@ Aun no esta disponible la administración de pedidos.
     ![nuevaVersion](/00/nuevaversion.png "Nueva Version")
 
     El mensaje que manda a Telegram es el cual con esos datos.
-
     El formato del mensaje sera modificado cuando se añadan fotos y más información de los productos.
-
     ![telegram](/00/telegram_mensaje.jpeg "Mensaje en telegram")
 
     Sale un mensaje de confirmación como en los anteriores.
-
     A la hora de modificar se modiffca en un formulario y se añade a la misma columna.
-
     A la hora de eliminar se borra de la columna.
 
     * Ediciones / Plataformas / Juego
