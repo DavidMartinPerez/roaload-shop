@@ -76,7 +76,7 @@ El perfil del administrador solo sale si eres administrador de la web, el perfil
 Podemos crear tanto como productos los cuales se llaman "Versiones", plataformas nuevas, ediciones y información sobre un juego.
 Aun no esta disponible la administración de pedidos.
 
-    * Versiones
+    - Versiones
 
     Esta parte es la cual donde se crean los productos que se muestran en la página principal
     Lista las Versiones existentes - Con filtros
@@ -95,8 +95,8 @@ Aun no esta disponible la administración de pedidos.
     A la hora de modificar se modiffca en un formulario y se añade a la misma columna.
     A la hora de eliminar se borra de la columna.
 
-    * Ediciones / Plataformas / Juego
-    
+    - Ediciones / Plataformas / Juego
+
     (Estas pestañas son muy parecidas y solo pondré una sección)
     En la cual sale listado de las ediciones disponibles y puedes crear nuevas.
 
