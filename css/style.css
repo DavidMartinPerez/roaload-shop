@@ -1,13 +1,20 @@
 .error {
     color: red !important;
 }
-.cabecera{
+.cabecera {
 
 }
-.logo-admin{
+.logo-admin {
     margin-top: 90px;
     margin-bottom: 90px;
 }
-.btn-menu{
+.btn-menu {
     width: 100%;
+}
+.btn-click:hover {
+    cursor: pointer;
+    background-color: lightgrey;
+}
+input{
+  caret-color: pink;
 }
