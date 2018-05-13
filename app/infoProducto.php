@@ -1,12 +1,10 @@
 <?php
-    $id = $_GET["id"];
-    include "conexion.php";
-    $sql = "SELECT version.idVersion, version.img , juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, juego.descripJuego ,version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora
-            FROM videojuego juego, versionjuego version, edicion ed , plataforma ptl, distribuidora dis
-            where version.idEdicion = ed.idEdicion AND version.idJuego = juego.idJuego AND version.idPlataforma = ptl.idPlataforma AND version.idDistribuidora = dis.idDistribuidora AND version.idVersion = $id";
-    $reg = $bd->query($sql);
-    $dato = mysqli_fetch_assoc($reg);
-	$bd->close();
+    require 'funciones/productos.php';
+
+    $objId = new Producto();
+    $dato = $objId->obtenerInfoProducto($_GET['id']);
+
+
 ?>
 <a class="waves-effect waves-light btn  margenBoton" onclick="paginaPrincipal()" ><i class="material-icons left" style="margin-left: 15px;">arrow_back</i></a>
 <div class="container">

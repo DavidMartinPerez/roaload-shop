@@ -1,4 +1,5 @@
 <?php
+
     // require_once "../constantes/constantes.php";
     //Local
     $bd = @new mysqli('localhost', 'root', '');
@@ -11,4 +12,5 @@
     if($bd->connect_errno) {
         die("**Error $bd->connect_errno: $bd->connect_error.<br/>") ;
     }
+
 ?>

@@ -1,9 +1,11 @@
 $(document).ready(function(){
-    $.ajax({url: "script/principal.php", success: function(result){
+    $.ajax({url: "app/principal.php", success: function(result){
         $(".principalCuerpo").html(result);
     }});
     $(".dropdown-button").dropdown();
 });//Document ready
+
+//##################################################################################
 $(function() {
     $('.perfil-navbar').sideNav({
         menuWidth: 300, // Default is 300
@@ -16,7 +18,7 @@ $(function() {
 });
 function infoVersion(juego){
     console.log(juego.id)
-    $.get("script/infoVersion.php", {
+    $.get("app/infoProducto.php", {
         id: juego.id
     },function(data){
         $(".principalCuerpo").empty();
@@ -24,7 +26,18 @@ function infoVersion(juego){
     });
 }
 function paginaPrincipal(){
-    $.ajax({url: "script/principal.php", success: function(result){
+    $.ajax({url: "app/principal.php",
+    success: function(result){
         $(".principalCuerpo").html(result);
     }});
 }
+
+function añadirCarrito(idP){
+    $.get("app/carrito.php",{
+        idA: idP
+    },function(data){
+        Materialize.toast('¡Añadido al carrito!', 3000, 'green rounded');
+        console.log(data);
+        $(".carritoP").html(data);
+    }
+)};

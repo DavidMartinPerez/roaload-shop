@@ -12,7 +12,7 @@
 		<!-- Deja que el navegador sepa que el sitio web está optimizado para dispositivos móviles -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-		<title>World of Wanted</title>
+		<title>Roaload</title>
 
 		<!-- js de Jquery y Materialize -->
       	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
@@ -87,7 +87,9 @@
 	<body>
 		<!-- sideNav sobre el perfil del usuario -->
 		<ul id="slide-out" class="side-nav" style="background-color: #ee6e73">
-			<?php include "perfil.php" ?>
+			<div>
+				<?php include "app/acceder/perfil.php" ?>
+			</div>
 		</ul>
 		<!-- ./sideNav -->
 		<!-- Dropdown Structure -->
@@ -100,7 +102,8 @@
 		<!-- navbar -->
 		<nav>
 			<div class="nav-wrapper">
-				<a href="#!" class="brand-logo">World of Wanted</a>
+				<img src="img/iconoWeb.png" width="80" height="80" />
+				<a href="#!" class="brand-logo">Roaload</a>
 				<ul id="nav-mobile" class="right hide-on-med-and-down">
 					<li><a>NSW</a></li>
 			        <li><a>PS4</a></li>
@@ -120,7 +123,7 @@
           <div class="container">
             <div class="row">
               <div class="col l6 s12">
-                <h5 class="white-text">WOW-SHOP</h5>
+                <h5 class="white-text">Roaload</h5>
                 <p class="grey-text text-lighten-4">Unete al grupo de Telegram para recibir notificaciones.</p>
 				<p>Link del chat: <a href="https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw" target="_blank">Aquí</a></p>
               </div>

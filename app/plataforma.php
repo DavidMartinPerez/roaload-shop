@@ -8,7 +8,7 @@
 
 <h1>Administración de Plataforma</h1>
 <br>
-<a  class="versionEdicion"><button type="button" onclick="nuevaPlataforma()" class="btn-version btn btn-default navbar-btn">Nueva Plataforma</button></a>
+<a class="versionEdicion"><button type="button" onclick="nuevaPlataforma()" class="btn-version btn btn-default navbar-btn">Nueva Plataforma</button></a>
 <h2 >Lista de Plataforma</h2>
 <table class="highlight bordered tablaPlataformas">
 	<thead>

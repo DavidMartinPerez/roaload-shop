@@ -2,7 +2,25 @@ $(document).ready(function(){
     $.ajax({url: "version.php", success: function(result){
         $(".cuerpo").append(result);
     }});
+
+    //############ SIDENAV ####################
+    $('.button-collapse').sideNav({
+        menuWidth: 240, // Default is 300
+        edge: 'left', // Choose the horizontal origin
+        closeOnClick: false, // Closes side-nav on <a> clicks, useful for Angular/Meteor
+        draggable: true // Choose whether you can drag to open on touch screens,
+    });
+    //~############# /SIDENAV ############################
+
 });//Document ready
+
+
+
+//desplegar sidenav
+function sidenav(){
+    $("#sidenavAdmin").removeClass("sidenav-cerrado");
+    $("#sidenavAdmin").addClass("sidenav-abiero");
+}
 //Rediracionamiento
 function mostrarVersiones(){
     $.ajax({url: "version.php", success: function(result){
