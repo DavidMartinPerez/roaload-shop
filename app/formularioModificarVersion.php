@@ -2,10 +2,10 @@
     // Conexiones a la BBDD para sacar los registros de los select.
     include "conexion.php";
 
-    $sqlSelectDistribuidora = "SELECT idDistribuidora, nombreDistribuidora FROM `distribuidora` WHERE 1";
-    $sqlSelectPlataforma = "SELECT idPlataforma, nombrePlataforma FROM `plataforma` WHERE 1";
-    $sqlSelectEdicion = "SELECT idEdicion, nombreEdicion FROM `edicion` WHERE 1";
-    $sqlSelectJuego = "SELECT * FROM `videojuego` WHERE 1";
+    $sqlSelectDistribuidora = "SELECT idDistribuidora, nombreDistribuidora ";
+    $sqlSelectPlataforma = "SELECT idPlataforma, nombrePlataforma FROM `plataforma` ";
+    $sqlSelectEdicion = "SELECT idEdicion, nombreEdicion FROM `edicion` ";
+    $sqlSelectJuego = "SELECT idJuego, nombreJuego, descripJuego FROM `videojuego` ";
 
     $regEdicion = $bd->query($sqlSelectEdicion);
     $regPlataforma = $bd->query($sqlSelectPlataforma);

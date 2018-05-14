@@ -4,7 +4,7 @@
 
     $objS = new Acceso();
     if($objS->sessionActiva()){
-        header("Location: ../../index.php");
+        header("Location: /");
     }
     if(isset($_GET["exit"])){
         $objD = new Acceso();
@@ -25,16 +25,16 @@
 
 <head>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="../../css/materialize.min.css">
-    <link rel="stylesheet" href="../../css/login.css">
-    <script type="text/javascript" src="../../js/jquery.min.js"></script>
-    <script type="text/javascript" src="../../js/materialize.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
 </head>
 
 <body>
   <div class="section"></div>
     <center>
-      <img class="responsive-img" style="width: 250px;" src="../../img/favicon.png" />
+      <img class="responsive-img" style="width: 250px;" src="img/favicon.png" />
       <div class="section"></div>
 
       <h5 class="indigo-text">Por favor, introduce tu cuenta :)</h5>
@@ -77,7 +77,7 @@
         </div>
       </div>
       <a class="btn indigo" href="crearCuenta.php">Create una cuenta</a>
-      <a class="btn indigo" href="../../">Volver atrás</a>
+      <a class="btn indigo" href="/">Volver atrás</a>
     </center>
 
     <div class="section"></div>

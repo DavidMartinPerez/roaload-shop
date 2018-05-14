@@ -1,5 +1,34 @@
-RewriteEngine On
-RewriteBase /PHP/WOW_SHOP-PHP/
+Options +FollowSymLinks
+RewriteEngine on
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^/login$ app/acceder/inicioSesion.php
+RewriteCond %{REQUEST_FILENAME} !-l
+
+# Index
+RewriteRule ^principal$ index.php
+
+# Login - Registrarse
+RewriteRule ^login$ app/acceder/inicioSesion.php
+
+RewriteRule ^registrarse$ app/acceder/crearCuenta.php
+
+# admin
+RewriteRule ^admin$ app/trastienda/admin.php
+
+# Páginas de errores:
+
+# No encontrado
+ErrorDocument 404 app/vistas/error404.html
+
+# Petición Incorrecta
+ErrorDocument 400 app/vistas/error.html
+
+# Se requiere autorización
+ErrorDocument 401 app/vistas/error.html
+
+# Prohibida
+ErrorDocument 403 app/vistas/error.html
+
+# Error interno del servidor
+ErrorDocument 500 app/vistas/error.html

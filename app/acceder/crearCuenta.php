@@ -40,14 +40,14 @@
 
 <head>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="../css/materialize.min.css">
-  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
+  <link rel="stylesheet" href="css/login.css">
 </head>
 
 <body>
   <div class="section"></div>
     <center>
-      <img class="responsive-img" style="width: 250px;" src="../img/welcome.png" />
+      <img class="responsive-img" style="width: 250px;" src="img/welcome.png" />
       <div class="section"></div>
 
       <h5 class="indigo-text">Por favor, rellena el formulario :)</h5>
@@ -94,7 +94,7 @@
     <div class="section"></div>
     <div class="section"></div>
 
-  <script type="text/javascript" src="../js/jquery.min.js"></script>
-  <script type="text/javascript" src="../js/materialize.min.js"></script>
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
 </html>

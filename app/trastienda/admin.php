@@ -16,7 +16,7 @@
 		<!-- Font icons Material -->
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!-- CSS materialize -->
-		<link type="text/css" rel="stylesheet" href="../css/materialize.min.css"  media="screen,projection"/>
+		<link type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection"/>
 		<!-- Mi css personalizado -->
 		<!-- Deja que el navegador sepa que el sitio web está optimizado para dispositivos móviles -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -24,12 +24,11 @@
 		<!-- js de Jquery y Materialize -->
 	    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 	    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	    <link rel="stylesheet" href="../css/style.css">
-	    <script src="../jquery-ui-1.12.1.custom/jquery-ui.js"></script>
-	    <script src="../js/jquery.validate.js"></script>
+	    <link rel="stylesheet" href="css/style.css">
+	    <script src="js/jquery.validate.js"></script>
 	    <!-- propio js -->
-		<script src="../js/materialize2.min.js"></script>
-		<script src="../js/main.js"></script>
+		<script src="js/materialize2.min.js"></script>
+		<script src="js/main.js"></script>
 		<style>
 			#container {
 				padding-left: 240px;
