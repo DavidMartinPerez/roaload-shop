@@ -1,5 +1,5 @@
 <?php
-	require 'funciones/productos.php';
+	require 'dao/productos.php';
 
 	$filtro = $_GET["filtro"] ?? "";
 

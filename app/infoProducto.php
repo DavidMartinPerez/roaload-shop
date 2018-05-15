@@ -1,5 +1,5 @@
 <?php
-    require 'funciones/productos.php';
+    require 'dao/productos.php';
 
     $objId = new Producto();
     $dato = $objId->obtenerInfoProducto($_GET['id']);

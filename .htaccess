@@ -5,18 +5,19 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-l
 
+############## Enrutamiento #######################
 # Index
 RewriteRule ^principal$ index.php
 
 # Login - Registrarse
 RewriteRule ^login$ app/acceder/inicioSesion.php
-
 RewriteRule ^registrarse$ app/acceder/crearCuenta.php
 
-# admin
+# Admin
 RewriteRule ^admin$ app/trastienda/admin.php
 
-# Páginas de errores:
+
+######## Páginas de errores ########################
 
 # No encontrado
 ErrorDocument 404 app/vistas/error404.html

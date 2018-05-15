@@ -1,6 +1,6 @@
 <?php
     session_start();
-    require '../funciones/acceso.php';
+    require '../dao/acceso.php';
 
     $objS = new Acceso();
     if($objS->sessionActiva()){
@@ -25,16 +25,16 @@
 
 <head>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
-    <link rel="stylesheet" href="/css/login.css">
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="assets/css/materialize.min.css">
+    <link rel="stylesheet" href="assets/css/login.css">
+    <script type="text/javascript" src="assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/materialize.min.js"></script>
 </head>
 
 <body>
   <div class="section"></div>
     <center>
-      <img class="responsive-img" style="width: 250px;" src="img/favicon.png" />
+      <img class="responsive-img" style="width: 250px;" src="assets/img/favicon.png" />
       <div class="section"></div>
 
       <h5 class="indigo-text">Por favor, introduce tu cuenta :)</h5>
@@ -62,11 +62,10 @@
                 <label for="password">contraseña</label>
               </div>
               <label style="float: right;">
-								<a class="pink-text" href="#!"><b>¿Recuerda tu cuenta?</b></a>
-							</label>
+                  <a class="pink-text" href=""><b>¿Recuerda tu cuenta?</b></a>
+              </label>
             </div>
-
-            <br />
+            <br/>
             <center>
               <div class="row">
                 <button type="submit" name="btn_login" class="col s12 btn btn-large waves-effect indigo">Iniciar Sesión</button>
@@ -76,7 +75,7 @@
           </form>
         </div>
       </div>
-      <a class="btn indigo" href="crearCuenta.php">Create una cuenta</a>
+      <a class="btn indigo" href="registrarse">Create una cuenta</a>
       <a class="btn indigo" href="/">Volver atrás</a>
     </center>
 

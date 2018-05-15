@@ -1,0 +1,26 @@
+.demo-button button {
+  margin-bottom: 5px;
+}
+
+.demo-button .btn-group {
+  margin-bottom: 5px;
+}
+
+.demo-icons li {
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.demo-icons .lnr,
+.demo-icons .fa {
+  font-size: 28px;
+}
+
+.demo-icons .cssclass {
+  display: block;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.mousePointer:hover{
+    cursor:pointer;
+}

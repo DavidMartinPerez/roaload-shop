@@ -2,13 +2,13 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<link rel="icon" type="image/png" href="img/favicon.png">
+		<link rel="icon" type="image/png" href="assets/img/favicon.png">
 		<!-- Mi css personalizado -->
-		<link rel="stylesheet" type="text/css" href="css/index.css">
+		<link rel="stylesheet" type="text/css" href="assets/css/index.css">
 		<!-- Font icons Material -->
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!-- CSS materialize -->
-		<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+		<link type="text/css" rel="stylesheet" href="assets/css/materialize.min.css"  media="screen,projection"/>
 		<!-- Deja que el navegador sepa que el sitio web está optimizado para dispositivos móviles -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
@@ -16,9 +16,9 @@
 
 		<!-- js de Jquery y Materialize -->
       	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-		<script type="text/javascript" src="js/materialize.min.js"></script>
+		<script type="text/javascript" src="assets/js/materialize.min.js"></script>
 		<!-- propio js -->
-		<script src="js/script.js"></script>
+		<script src="assets/js/script.js"></script>
 		<style>
 			body{
 				background: white;
@@ -102,7 +102,7 @@
 		<!-- navbar -->
 		<nav>
 			<div class="nav-wrapper">
-				<img src="img/iconoWeb.png" width="80" height="80" />
+				<img src="assets/img/iconoWeb.png" width="80" height="80" />
 				<a href="#!" class="brand-logo">Roaload</a>
 				<ul id="nav-mobile" class="right hide-on-med-and-down">
 					<li><a>NSW</a></li>
@@ -134,6 +134,7 @@
                   <li><a class="grey-text text-lighten-3" href="#!">PHP + Mysql</a></li>
                   <li><a class="grey-text text-lighten-3" href="#!">Jquery</a></li>
                   <li><a class="grey-text text-lighten-3" href="#!">Jquery ui</a></li>
+				  <li><a class="grey-text text-lighten-3" href="#!">Bootstrap</a></li>
                 </ul>
               </div>
             </div>
