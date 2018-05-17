@@ -4,7 +4,7 @@
 
     $objS = new Acceso();
     if($objS->sessionActiva()){
-        header("Location: /");
+        header("Location: principal");
     }
     if(isset($_GET["exit"])){
         $objD = new Acceso();

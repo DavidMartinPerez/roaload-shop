@@ -1,11 +1,11 @@
 <?php
 	require 'dao/productos.php';
 
-	$filtro = $_GET["filtro"] ?? "";
-
+	$filtro = 'ptl.idPlataforma';
+	$limit = 20;
 	$objP = new Producto;
 
-	$reg = $objP->obtenerTodosProductos($filtro);
+	$reg = $objP->obtenerTodosProductos($filtro, $limit);
 ?>
 
 <div class="row">
@@ -30,7 +30,7 @@
 	                    <div class="card carta-margin">
 	                        <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
 	                        <div class="card-image">
-	                            <a id="<?=$row['idVersion']?>" onclick="infoVersion(this);"><img class="tamaño-img" src="img/caratula/<?=$img ?>"></a>
+	                            <a id="<?=$row['idVersion']?>" onclick="infoVersion(this);"><img class="tamaño-img" src="assets/img/caratula/<?=$img ?>"></a>
 	                        </div>
 	                        <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
 							<p class="center-align"><?=$row["nombreEdicion"]?>

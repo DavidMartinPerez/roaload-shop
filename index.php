@@ -21,9 +21,8 @@
 		<script src="assets/js/script.js"></script>
 		<style>
 			body{
-				background: white;
-				background-repeat: no-repeat;
 				background-size: cover;
+				background :url('http://www.hdfondos.eu/pictures/2014/0301/1/orig_451968.jpg') -49% -7% fixed;
 			}
 			.n3DS{
 			    background: yellow;
@@ -86,7 +85,7 @@
 	</head>
 	<body>
 		<!-- sideNav sobre el perfil del usuario -->
-		<ul id="slide-out" class="side-nav" style="background-color: #ee6e73">
+		<ul id="slide-out" class="side-nav teal darken-1">
 			<div>
 				<?php include "app/acceder/perfil.php" ?>
 			</div>
@@ -100,26 +99,158 @@
 			<li><a href="#!">Reservas</a></li>
 		</ul>
 		<!-- navbar -->
-		<nav>
-			<div class="nav-wrapper">
-				<img src="assets/img/iconoWeb.png" width="80" height="80" />
-				<a href="#!" class="brand-logo">Roaload</a>
-				<ul id="nav-mobile" class="right hide-on-med-and-down">
-					<li><a>NSW</a></li>
-			        <li><a>PS4</a></li>
-					<li><a>XO</a></li>
-					<li><a>PC</a></li>
-					<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
-					<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
-				</ul>
-			</div>
-		</nav>
+		<div class="navbar-fixed">
+			<nav>
+				<div class="nav-wrapper teal darken-1">
+					<a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
+					<a href="#!" class="brand-logo">Roaload</a>
+					<ul id="nav-mobile" class="right hide-on-med-and-down">
+						<li>
+							<div class="center row">
+								<div class="col s12">
+									<div class="row" id="topbarsearch">
+										<div class="input-field col s6 s12">
+											<i class="material-icons prefix">search</i>
+											<input type="text" placeholder="search" id="autocomplete-input" class="autocomplete busInicio">
+										</div>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li><a>NSW</a></li>
+				        <li><a>PS4</a></li>
+						<li><a>XO</a></li>
+						<li><a>PC</a></li>
+						<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
+						<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
+					</ul>
+					<ul class="side-nav" id="mobile-demo">
+						<li><a>NSW</a></li>
+				        <li><a>PS4</a></li>
+						<li><a>XO</a></li>
+						<li><a>PC</a></li>
+						<li><a>3DS</a></li>
+						<li class="divider"></li>
+						<li><a href="#!">Accesorios</a></li>
+						<li><a href="#!">Reservas</a></li>
+					</ul>
+				</div>
+			</nav>
+		</div>
 		<!-- ./navbar -->
-		<!-- Page Layout here -->
-		<div class="principalCuerpo">
+		<!-- BREADCRUM -->
+		<div class="row">
+			<div class="container" style="padding-top: 20px">
+				<nav>
+					<div class="nav-wrapper teal lighten-1">
+						<div class="col s12">
+							<a href="" class="breadcrumb">Inicio</a>
+						</div>
+					</div>
+				</nav>
+			</div>
+		</div>
+		<!-- inicio del cuerpo que cambiará -->
+	  	<div class="container">
+			<div class="contenido" style="background-color: #f7f7f7">
+				<!-- Slider Carousel con Noticias -->
+				<div class="row">
+				  	<div class="slider ">
+						<ul class="slides">
+							<li>
+								<img src="https://professor-falken.com/wp-content/uploads/2017/07/montanas-picos-vistas-horizonte-lejania-altura-cordillera-Fondos-de-Pantalla-HD-professor-falken.com_.jpg">
+								<div class="caption center-align">
+									<h3>¡Bienvenido a Roaload!</h3>
+									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
+								</div>
+							</li>
+							<li>
+								<img src="http://www.trabajo1.esy.es/images/diez.jpg">
+								<div class="caption left-align">
+									<h3>Left Aligned Caption</h3>
+									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
+								</div>
+							</li>
+							<li>
+								<img src="http://www.trabajo1.esy.es/images/siete.jpg">
+								<div class="caption right-align">
+									<h3>Right Aligned Caption</h3>
+									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
+								</div>
+							</li>
+							<li>
+								<img src="http://www.nintenderos.com/wp-content/uploads/2018/05/Pok%C3%A9mon.jpg">
+								<div class="caption center-align">
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">MÁS VENDIDOS</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="vendidoIndex"></div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">PRÓXIMAS SALIDAS</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="salidaIndex"></div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">NOVEDADES NINTENDO SWITCH</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="nswIndex"></div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">NOVEDADES PS4</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="ps4Index"></div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">NOVEDADES XBOX ONE</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="xboxIndex"></div>
+				 <!-- /.Slider Carousel con Noticias -->
+			</div>
 		</div>
 		<!-- contenido de la web -->
-		<footer class="page-footer">
+		<footer class="page-footer teal darken-1">
           <div class="container">
             <div class="row">
               <div class="col l6 s12">
