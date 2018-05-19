@@ -12,7 +12,7 @@ $(document).ready(function(){
             alert( "Load was performed." );
         });
     });
-    var datos =    {
+    var datos = {
       "Kingdom Hearts": null,
       "Mario Bros": null,
       "Pokemon": null,
@@ -26,7 +26,7 @@ $(document).ready(function(){
       },
       minLength: 3, // The minimum length of the input for the autocomplete to start. Default: 1.
     });
-
+    
     $('.perfil-navbar').sideNav({
         menuWidth: 300, // Default is 300
         edge: 'right', // Choose the horizontal origin
@@ -35,7 +35,6 @@ $(document).ready(function(){
         onOpen: function(el) {  }, // A function to be called when sideNav is opened
         onClose: function(el) {  }, // A function to be called when sideNav is closed
     });
-
     $.ajax({url: "app/vistas/infoInicio.php?nsw", success: function(result){
         $("#nswIndex").html(result);
         $("#vendidoIndex").html(result);
@@ -47,28 +46,42 @@ $(document).ready(function(){
     $.ajax({url: "app/vistas/infoInicio.php?xbox", success: function(result){
         $("#xboxIndex").html(result);
     }});
+    $.ajax({url: "app/vistas/infoInicio.php?pc", success: function(result){
+        $("#pcIndex").html(result);
+    }});
 });//Document ready
 
 //##################################################################################
 
-function todos(filtro){
-    $.ajax({url: "app/principal.php", success: function(result){
-        $(".principalCuerpo").html(result);
-    }});
+function vistaPtl(plataforma){
+    $.ajax({url: "app/vistas/infoInicio.php?" + plataforma + "&filtro=20", 
+        success: function(result){
+            $(".contenido").html(result);
+            if(plataforma == 'todo'){
+                breadcrumControl(null,'videojuegos');
+            }else{
+                breadcrumControl(true,plataforma);
+            }
+        }
+    });
 }
-function infoVersion(juego){
-    console.log(juego.id)
+function limpiarBreadcrum(){ //Carga index en el contenedor y limpiar el breadcrum
+    //paginaPrincipal();
+    breadcrumControl(true);
+}
+function infoVersion(idJ, nombre, plataforma){ //Carga la información de el producto y lo añade en el contenedor
+    breadcrumControl(null, null, nombre);
     $.get("app/infoProducto.php", {
-        id: juego.id
+        id: idJ,
+        ptl: plataforma
     },function(data){
-        $(".principalCuerpo").empty();
-        $(".principalCuerpo").append(data);
+        $(".contenido").html(data);
     });
 }
 function paginaPrincipal(){
     $.ajax({url: "app/principal.php",
     success: function(result){
-        $(".principalCuerpo").html(result);
+        $(".contenido").html(result);
     }});
 }
 
@@ -81,3 +94,20 @@ function añadirCarrito(idP){
         $(".carritoP").html(data);
     }
 )};
+
+function breadcrumControl(limpiar = null,plataforma = null, nombre = null){ //Remover o añadir div's al breadcrum 
+                                                                            //[1º limpiar todo, 2º nombre de la plataforma eliminado el 3º paso, 3º nombre del juego]
+    if(limpiar != null) {
+        $(".juegoMigas").remove();
+        $(".migasInfoJuego").remove();
+        console.log("borro breadcrum");
+    }
+    if(plataforma != null){
+        $(".migasDePan").append("<a class='breadcrumb juegoMigas'>" + plataforma.toUpperCase() + "</a>");
+        console.log("añado plataforma");
+    }
+    if(nombre != null){
+        $(".migasDePan").append('<a class="breadcrumb migasInfoJuego">' + nombre + '</a>');
+        console.log("añado nombre");
+    }
+}

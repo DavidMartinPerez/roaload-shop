@@ -4,7 +4,7 @@
 		die(header("Location: login"));
 	}
 	if ($_SESSION["rol"] != "admin"){
-		die(header("Location: /"));
+		die(header("Location: principal"));
 	}
 
 ?>
@@ -48,7 +48,7 @@
 				</div>
 				<!-- logo -->
 				<div class="navbar-brand">
-					<a href="index.html"><img src="assets/img/logo.png" alt="DiffDash Logo" class="img-responsive logo"></a>
+					<a href="admin">Consola de Administración</a>
 				</div>
 				<!-- end logo -->
 				<div class="navbar-right">
@@ -64,10 +64,10 @@
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle icon-menu" data-toggle="dropdown">
 									<i class="lnr lnr-alarm"></i>
-									<span class="notification-dot"></span>
+									<span class="notification"></span>
 								</a>
 								<ul class="dropdown-menu notifications">
-									<li class="header"><strong>You have 7 new notifications</strong></li>
+									<li class="header"><strong>Tu tienes X notificaciones</strong></li>
 									<li>
 										<a href="#">
 											<div class="media">
@@ -75,114 +75,26 @@
 													<i class="fa fa-fw fa-flag-checkered text-muted"></i>
 												</div>
 												<div class="media-body">
-													<p class="text">Your campaign <strong>Holiday Sale</strong> is starting to engage potential customers.</p>
-													<span class="timestamp">24 minutes ago</span>
+													<p class="text">Notificaacion <strong>TODO: COGER DE BASE DE DATOS</strong> aun no terminado. </p>
+													<span class="timestamp">Hace cuanto lo hice</span>
 												</div>
 											</div>
 										</a>
 									</li>
-									<li>
-										<a href="#">
-											<div class="media">
-												<div class="media-left">
-													<i class="fa fa-fw fa-exclamation-triangle text-warning"></i>
-												</div>
-												<div class="media-body">
-													<p class="text">Campaign <strong>Holiday Sale</strong> is nearly reach budget limit.</p>
-													<span class="timestamp">2 hours ago</span>
-												</div>
-											</div>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<div class="media">
-												<div class="media-left">
-													<i class="fa fa-fw fa-bar-chart text-muted"></i>
-												</div>
-												<div class="media-body">
-													<p class="text">Website visits from Facebook is 27% higher than last week.</p>
-													<span class="timestamp">Yesterday</span>
-												</div>
-											</div>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<div class="media">
-												<div class="media-left">
-													<i class="fa fa-fw fa-check-circle text-success"></i>
-												</div>
-												<div class="media-body">
-													<p class="text">Your campaign <strong>Holiday Sale</strong> is approved.</p>
-													<span class="timestamp">2 days ago</span>
-												</div>
-											</div>
-										</a>
-									</li>
-									<li>
-										<a href="#">
-											<div class="media">
-												<div class="media-left">
-													<i class="fa fa-fw fa-exclamation-circle text-danger"></i>
-												</div>
-												<div class="media-body">
-													<p class="text">Error on website analytics configurations</p>
-													<span class="timestamp">3 days ago</span>
-												</div>
-											</div>
-										</a>
-									</li>
-									<li class="footer"><a href="#" class="more">See all notifications</a></li>
+									<!-- TODO: Añadir notificaciones de la base de datos -->
+									<li class="footer"><a href="#" class="more">Ver todas</a></li>
 								</ul>
 							</li>
+							<!-- mensajes -->
 							<li class="dropdown">
-								<a href="#" class="dropdown-toggle icon-menu" data-toggle="dropdown">
-									<i class="lnr lnr-cog"></i>
-								</a>
-								<ul class="dropdown-menu user-menu menu-icon">
-									<li class="menu-heading">ACCOUNT SETTINGS</li>
-									<li><a href="#"><i class="fa fa-fw fa-edit"></i> <span>Basic</span></a></li>
-									<li><a href="#"><i class="fa fa-fw fa-bell"></i> <span>Notifications</span></a></li>
-									<li><a href="#"><i class="fa fa-fw fa-sliders"></i> <span>Preferences</span></a></li>
-									<li><a href="#"><i class="fa fa-fw fa-lock"></i> <span>Privacy</span></a></li>
-									<li class="menu-heading">BILLING</li>
-									<li><a href="#"><i class="fa fa-fw fa-file-text-o"></i> <span>Invoices</span></a></li>
-									<li><a href="#"><i class="fa fa-fw fa-credit-card"></i> <span>Payments</span></a></li>
-									<li><a href="#"><i class="fa fa-fw fa-refresh"></i> <span>Renewals</span></a></li>
-									<li class="menu-button">
-										<a href="#" class="btn btn-primary"><i class="fa fa-rocket"></i> UPGRADE PLAN</a>
-									</li>
-								</ul>
-							</li>
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle icon-menu" data-toggle="dropdown">
+								<a href="" onclick="alert('manual')" class="dropdown-toggle icon-menu" data-toggle="dropdown">
 									<i class="lnr lnr-question-circle"></i>
 								</a>
-								<ul class="dropdown-menu user-menu">
-									<li>
-										<form class="search-form help-search-form">
-											<input value="" class="form-control" placeholder="How can we help?" type="text">
-											<button type="button" class="btn btn-default"><i class="fa fa-search"></i></button>
-										</form>
-									</li>
-									<li class="menu-heading">HOW-TO</li>
-									<li><a href="#">Setting up Campaign</a></li>
-									<li><a href="#">Understanding Website Analytics</a></li>
-									<li><a href="#">Boost Your Sales</a></li>
-									<li><a href="#">Knowing Your Audience</a></li>
-									<li class="menu-heading">ACCOUNT</li>
-									<li><a href="#">Change Password</a></li>
-									<li><a href="#">Privacy &amp; Security</a></li>
-									<li><a href="#">Membership</a></li>
-									<li class="menu-heading">BILLING</li>
-									<li><a href="#">Setup Payment</a></li>
-									<li><a href="#">Auto-Renewal Program</a></li>
-									<li><a href="#">Cancellation</a></li>
-									<li class="menu-button">
-										<a href="#" class="btn btn-primary"><i class="fa fa-question-circle"></i> HELP CENTER</a>
-									</li>
-								</ul>
+							</li>
+							<li class="dropdown">
+								<a href="" onclick="alert('salir')" class="dropdown-toggle icon-menu" data-toggle="dropdown">
+									<i class="glyphicon glyphicon-remove-circle"></i>
+								</a>
 							</li>
 						</ul>
 					</div>
@@ -206,7 +118,7 @@
 						<ul class="dropdown-menu dropdown-menu-right account">
 							<li><a href="#">Perfil</a></li>
 							<li><a href="#">Mensajes</a></li>
-							<li><a href="#">Opciones</a></li>
+							<li><a href="#">Cambiar contraseña</a></li>
 							<li class="divider"></li>
 							<li><a href="#">Salir</a></li>
 						</ul>
@@ -216,7 +128,7 @@
 				<!-- MENÚ NAVBAR -->
 				<nav id="left-sidebar-nav" class="sidebar-nav">
 					<ul id="main-menu" class="metismenu">
-						<li class=""><a href="admin"><i class="lnr lnr-home"></i> <span>Administración</span></a></li>
+						<li class=""><a href="admin"><i class="glyphicon glyphicon-home"></i> <span>Administración</span></a></li>
 						<li class="">
 							<a class="has-arrow mousePointer" aria-expanded="false"><i class="glyphicon glyphicon-apple"></i> <span>Productos</span></a>
 							<ul aria-expanded="true">
@@ -235,8 +147,8 @@
 								<li class=""><a class="mousePointer">Consultas</a></li>
 							</ul>
 						</li>
-						<li class=""><a class="mousePointer"><i class="lnr lnr-home"></i><span>Calendario</span></a></li>
-						<li class=""><a class="mousePointer"><i class="lnr lnr-alarm"></i> <span>Notificaciones</span> <span class="badge bg-danger">TODO BBDD</span></a></li>
+						<li class=""><a class="mousePointer"><i class="glyphicon glyphicon-calendar"></i><span>Calendario</span></a></li>
+						<li class=""><a class="mousePointer"><i class="glyphicon glyphicon-bell"></i> <span>Notificaciones</span> <span class="badge bg-danger">TODO BBDD</span></a></li>
 					</ul>
 				</nav>
 				<!-- /.MENÚ NAVBAR -->
@@ -491,6 +403,74 @@
 			<p class="copyright">&copy; 2018 <a href="https://davidmartinperez.github.io/" target="_blank">David Martín Pérez</a>. ¿Contactarme? <a href="mailto:davidmartinperez1@gmail.com">Mandame un correo.</a></p>
 		</footer>
 	</div>
+	<!-- Modales De edición-->
+	<!--div class="modificarVersionModal" title="¡Modificar!" style="display:none">
+		<?php //include "app/formularioModificarVersion.php" ?>
+	</div>
+	<div class="añadirVersionModal" title="¡Añadir Version!" style="display:none">
+		<?php //include "formularioVersion.php" ?>
+	</div-->
+	<!--div class="añadirJuegoModal" title="¡Añadir Juego!" style="display:none">
+		<div id="formularioNuevo">
+			<form id="formNuevoJuego">
+				<div>
+					Nombre:<br>
+					<input type="text" id="nombreNuevo" name="nombre" />
+				</div><br>
+				<div>
+					Descripción:<br>
+					<textarea id="desNuevo" class="materialize-textarea"></textarea>
+				</div><br>
+			</form>
+		</div>
+	</div>
+	<div class="añadirEdicionModal" title="¡Añadir Edicion!" style="display:none">
+		<div id="formularioNuevo">
+			<form id="formNuevaEdicion">
+				<div>
+					Edicion:<br>
+					<input type="text" id="edicionNueva" name="edicion" />
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="añadirPlataformaModal" title="¡Añadir Plataforma!" style="display:none">
+		<form id="formNuevaPlataforma">
+			<div>
+				Plataforma:<br>
+				<input type="text" id="plataNueva" name="plata" />
+			</div><br>
+		</form>
+	</div-->
+	<!--  MODAL JUEGO NUEVO -->
+	<div id="nuevoJuego" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title">Nuevo Juego</h4>
+				</div>
+				<div class="modal-body">
+					<form id="nuevoJuegoForm" data-parsley-validate novalidate>
+						<div class="form-group">
+							<label for="text-input1">Nombre</label>
+							<input type="text" id="nombreJuegoNuevo" class="form-control" required />
+						</div>
+						<div class="form-group">
+							<label for="text-input2">Descripción</label>
+							<textarea type="text" id="descripcionJuegoNuevo" class="form-control" required data-parsley-minlength="10" required></textarea>
+						</div>
+						<br/>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+							<button type="submit" class="btn btn-success">Crear</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	<div>
+	<!--  /.MODAL JUEGO NUEVO -->
 	<!-- END WRAPPER -->
 	<!-- Javascript -->
 	<script src="assets/vendor/jquery/jquery.min.js"></script>
@@ -499,13 +479,16 @@
 	<script src="assets/vendor/jquery-slimscroll/jquery.slimscroll.min.js"></script>
 	<script src="assets/vendor/jquery-sparkline/js/jquery.sparkline.min.js"></script>
 	<script src="assets/vendor/bootstrap-progressbar/js/bootstrap-progressbar.min.js"></script>
+	<script src="assets/vendor/bootstrap-multiselect/bootstrap-multiselect.js"></script>
 	<script src="assets/vendor/chartist/js/chartist.min.js"></script>
+	<script src="assets/vendor/parsleyjs/js/parsley.min.js"></script>
 	<script src="assets/vendor/chartist-plugin-tooltip/chartist-plugin-tooltip.min.js"></script>
 	<script src="assets/vendor/chartist-plugin-axistitle/chartist-plugin-axistitle.min.js"></script>
 	<script src="assets/vendor/chartist-plugin-legend-latest/chartist-plugin-legend.js"></script>
 	<script src="assets/vendor/toastr/toastr.js"></script>
 	<script src="assets/scripts/common.js"></script>
 	<script src="assets/js/main.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
 </body>
 
 </html>

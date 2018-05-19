@@ -16,7 +16,7 @@
 			<div class="col-md-8 col-md-offset-2">
 			<div class="panel-content">
 				<h3 class="heading"><i class="fa fa-square"></i> Lista de Juegos </h3>
-				<a onclick="nuevoJuego()"><button type="button" class="btn label label-success"><i class="material-icons">Nuevo Juego</i></button></a>
+				<a href="#nuevoJuego" onclick="juegoNuevo()"><button type="button" class="btn label label-success"><i class="material-icons">Nuevo Juego</i></button></a>
 				<div class="table-responsive">
 					<table class="table table-striped no-margin">
 					<thead>

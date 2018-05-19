@@ -9,14 +9,16 @@
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 		<!-- CSS materialize -->
 		<link type="text/css" rel="stylesheet" href="assets/css/materialize.min.css"  media="screen,projection"/>
+		<!-- CSS del login-->
+		<link rel="stylesheet" href="assets/css/login.css">
 		<!-- Deja que el navegador sepa que el sitio web está optimizado para dispositivos móviles -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
 		<title>Roaload</title>
 
 		<!-- js de Jquery y Materialize -->
       	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="assets/js/materialize.min.js"></script>
+		<script src="http://malsup.github.com/jquery.form.js"></script> 
 		<!-- propio js -->
 		<script src="assets/js/script.js"></script>
 		<style>
@@ -93,7 +95,8 @@
 		<!-- ./sideNav -->
 		<!-- Dropdown Structure -->
 		<ul id="dropdown1" class="dropdown-content">
-			<li><a href="#!">3DS</a></li>
+			<!-- TODO: Crear vistas para estas categorias. -->
+			<li><a onclick="vistaPtl('n3ds')">3DS</a></li>
 			<li class="divider"></li>
 			<li><a href="#!">Accesorios</a></li>
 			<li><a href="#!">Reservas</a></li>
@@ -102,8 +105,10 @@
 		<div class="navbar-fixed">
 			<nav>
 				<div class="nav-wrapper teal darken-1">
+					<!-- TODO: Crear un icono para Perfil en modo movil -->
 					<a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
-					<a href="#!" class="brand-logo">Roaload</a>
+					<a href="principal" class="brand-logo">Roaload</a>
+					<a></a>
 					<ul id="nav-mobile" class="right hide-on-med-and-down">
 						<li>
 							<div class="center row">
@@ -117,34 +122,37 @@
 								</div>
 							</div>
 						</li>
-						<li><a>NSW</a></li>
-				        <li><a>PS4</a></li>
-						<li><a>XO</a></li>
-						<li><a>PC</a></li>
+						<li><a onclick="vistaPtl('todo')">Todos</a></li>
+						<li><a onclick="vistaPtl('nsw')">NSW</a></li>
+				        <li><a onclick="vistaPtl('ps4')">PS4</a></li>
+						<li><a onclick="vistaPtl('xone')">XO</a></li>
+						<li><a onclick="vistaPtl('pc')">PC</a></li>
 						<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
 						<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
 					</ul>
-					<ul class="side-nav" id="mobile-demo">
-						<li><a>NSW</a></li>
-				        <li><a>PS4</a></li>
-						<li><a>XO</a></li>
-						<li><a>PC</a></li>
-						<li><a>3DS</a></li>
-						<li class="divider"></li>
-						<li><a href="#!">Accesorios</a></li>
-						<li><a href="#!">Reservas</a></li>
-					</ul>
+
 				</div>
 			</nav>
 		</div>
+		<ul class="side-nav" id="mobile-demo">
+			<li><a onclick="todos()">Todos</a></li>
+			<li><a onclick="vistaPtl('nsw')">NSW</a></li>
+			<li><a onclick="vistaPtl('ps4')">PS4</a></li>
+			<li><a onclick="vistaPtl('xone')">XO</a></li>
+			<li><a onclick="vistaPtl('pc')">PC</a></li>
+			<li><a onclick="vistaPtl('n3ds')">3DS</a></li>
+			<li class="divider"></li>
+			<li><a href="#!">Accesorios</a></li>
+			<li><a href="#!">Reservas</a></li>
+		</ul>
 		<!-- ./navbar -->
 		<!-- BREADCRUM -->
 		<div class="row">
 			<div class="container" style="padding-top: 20px">
 				<nav>
 					<div class="nav-wrapper teal lighten-1">
-						<div class="col s12">
-							<a href="" class="breadcrumb">Inicio</a>
+						<div class="col s12 migasDePan">
+							<a href="principal" onclick="limpiarBreadcrum()" class="breadcrumb">Inicio</a>
 						</div>
 					</div>
 				</nav>
@@ -157,7 +165,7 @@
 				<div class="row">
 				  	<div class="slider ">
 						<ul class="slides">
-							<li>
+							<li><!-- TODO: Personalizar las noticias iniciales. -->
 								<img src="https://professor-falken.com/wp-content/uploads/2017/07/montanas-picos-vistas-horizonte-lejania-altura-cordillera-Fondos-de-Pantalla-HD-professor-falken.com_.jpg">
 								<div class="caption center-align">
 									<h3>¡Bienvenido a Roaload!</h3>
@@ -188,7 +196,7 @@
 				</div>
 				<div class="row">
 					<div class="" style="padding-top: 20px">
-						<nav>
+						<nav> <!-- TODO: Terminar Más vendidos y proximas salidas [Falta base de datos personalziada para estos campos]-->
 							<div class="nav-wrapper teal lighten-1">
 								<div class="col s12">
 									<a class="breadcrumb">MÁS VENDIDOS</a>
@@ -246,6 +254,18 @@
 					</div>
 				</div>
 				<div id="xboxIndex"></div>
+				<div class="row">
+					<div class="" style="padding-top: 20px">
+						<nav>
+							<div class="nav-wrapper teal lighten-1">
+								<div class="col s12">
+									<a class="breadcrumb">NOVEDADES PC</a>
+								</div>
+							</div>
+						</nav>
+					</div>
+				</div>
+				<div id="pcIndex"></div>
 				 <!-- /.Slider Carousel con Noticias -->
 			</div>
 		</div>

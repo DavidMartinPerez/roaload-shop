@@ -30,7 +30,7 @@
                 } else {
                     $_SESSION["rol"] = "admin";
                 }
-                header("Location: /");
+                header("Location: principal");
 
             } else {
                 $msg = "<p style='color:red'> ¡Datos no correctos!:(</p>";
@@ -45,7 +45,7 @@
             $_SESSION = [];
     		session_destroy();
 
-            header("Location: ../../index.php");
+            header("Location: principal");
         } //Desconectar
 
         //####### SESSION ACTIVA ##############

@@ -1,11 +1,14 @@
 <?php
-	require 'dao/productos.php';
+	$ds = DIRECTORY_SEPARATOR;
+    $base_dir = realpath(dirname(__FILE__)  . $ds . '..') . $ds; //Obtenemos el path actual
+	require_once("{$base_dir}app{$ds}dao{$ds}productos.php");
+	
 
-	$filtro = 'ptl.idPlataforma';
-	$limit = 20;
 	$objP = new Producto;
+	
+	$reg = $objP->obtenerTodosProductos();
 
-	$reg = $objP->obtenerTodosProductos($filtro, $limit);
+	
 ?>
 
 <div class="row">
@@ -13,7 +16,7 @@
 
     <!-- ./contenido lateral -->
     <!-- Contenido de la web -->
-    <div class="container cuerpo">
+    <div class="">
         <div class="row">
 				<div class="">
 					<!-- Menú de filtro? -->

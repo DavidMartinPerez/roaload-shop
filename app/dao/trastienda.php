@@ -33,12 +33,37 @@
         }
         //########## / recuperar input ##################
 
-        //##########  ##################
+        //########## GUARDAR GENERICO ##################
+        public function guardarGenerico($tabla, $nombre, $desc){
+            global $bd;
+            //TODO: UTF-8 and realscape
+            if($tabla == 'videojuego'){
+                $sqlComprobar = "SELECT * FROM videojuego WHERE nombreJuego = '$nombre'";
 
-        //########## / ##################
+                $existen = $bd->query($sqlComprobar);
 
-        //##########  ##################
+                if($existen->num_rows){
+                    return false;
+                }else{
+                    $sql = "INSERT INTO `videojuego`(`idJuego`, `nombreJuego`, `descripJuego`) VALUES (NULL,'$nombre','$desc')";
+                    $bd->query($sql);
+                    $bd->close();
+                    return true;
+                }
+                
+            }
+            
+            if($tabla == 'plataforma'){
 
-        //########## / ##################
+            }
+            if($tabla == 'edicion'){
+
+            }
+        }
+        //########## / GUARDAR GENERICO ##################
+
+        //########## GUARDAR VERSION DEFINITIVA DE UN JUEGO ##################
+
+        //########## / GUARDAR VERSION ##################
     } //class Trastienda
 ?>

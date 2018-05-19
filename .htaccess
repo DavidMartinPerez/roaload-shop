@@ -1,9 +1,7 @@
 Options +FollowSymLinks
 RewriteEngine on
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-l
+
 
 ############## Enrutamiento #######################
 # Index
@@ -19,9 +17,6 @@ RewriteRule ^admin$ app/trastienda/admin.php
 
 ######## Páginas de errores ########################
 
-# No encontrado
-ErrorDocument 404 app/vistas/error404.html
-
 # Petición Incorrecta
 ErrorDocument 400 app/vistas/error.html
 
@@ -30,6 +25,9 @@ ErrorDocument 401 app/vistas/error.html
 
 # Prohibida
 ErrorDocument 403 app/vistas/error.html
+
+# No encontrado
+ErrorDocument 404 app/vistas/error404.html
 
 # Error interno del servidor
 ErrorDocument 500 app/vistas/error.html

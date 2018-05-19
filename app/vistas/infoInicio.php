@@ -2,32 +2,55 @@
 $ds = DIRECTORY_SEPARATOR;
 $base_dir = realpath(dirname(__FILE__)  . $ds . '..') . $ds; //Obtenemos el path actual
 require_once("{$base_dir}dao{$ds}productos.php"); //aniade las constantes
-
-
+$reg = null;
+if(isset($_GET["todo"])){
+    $objP = new Producto;
+	$reg = $objP->obtenerTodosProductos();
+}
 if(isset($_GET["nsw"])){
     $nombrePlt = 'nsw';
     $filtro = '3';
-    $limit = 4;
+    $limit = $_GET["filtro"] ?? 4;
     $objP = new Producto;
     $reg = $objP->filtroProductos($filtro, $limit, $nombrePlt);
-
 }
 if(isset($_GET["ps4"])){
     $nombrePlt = 'ps4';
 	$filtro = '2';
-	$limit = 4;
+	$limit = $_GET["filtro"] ?? 4;
 	$objP = new Producto;
 	$reg = $objP->filtroProductos($filtro, $limit, $nombrePlt);
 
 }
-if(isset($_GET["xbox"])){
+if(isset($_GET["xone"])){
     $nombrePlt = 'xone';
 	$filtro = '7';
-	$limit = 4;
+	$limit = $_GET["filtro"] ?? 4;
 	$objP = new Producto;
 	$reg = $objP->filtroProductos($filtro, $limit, $nombrePlt);
 
-} ?>
+}
+
+if(isset($_GET["pc"])){
+    $nombrePlt = 'pc';
+	$filtro = '4';
+	$limit = $_GET["filtro"] ?? 4;
+	$objP = new Producto;
+	$reg = $objP->filtroProductos($filtro, $limit, $nombrePlt);
+}
+if(isset($_GET["n3ds"])){
+    //TODO: Termninar
+}
+if(isset($_GET["reserva"])){
+    //TODO: Termninar
+}
+if(isset($_GET["accesorios"])){
+    //TODO: Termninar
+}
+if($reg == NULL){
+    echo "<div class='container'>Lo sentimos no hemos encontrado nada :(</div>";
+}else{
+?>
 <div class="row">
         <div class="">
             <!-- Menú de filtro? -->
@@ -44,7 +67,7 @@ if(isset($_GET["xbox"])){
                 <div class="card carta-margin">
                     <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
                     <div class="card-image">
-                        <a id="<?=$row['idVersion']?>" onclick="infoVersion(this);"><img class="tamaño-img" src="assets/img/caratula/<?=$img ?>"></a>
+                        <a id="<?=$row['idVersion']?>" onclick="infoVersion(this.id, '<?=$row["nombreJuego"]?>', '<?=$row["nombrePlataforma"]?>');"><img class="tamaño-img" src="assets/img/caratula/<?=$img ?>"></a>
                     </div>
                     <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
                     <p class="center-align"><?=$row["nombreEdicion"]?>
@@ -54,6 +77,6 @@ if(isset($_GET["xbox"])){
                     </div>
                 </div>
             </div>
-        <?php } ?>
+        <?php }} ?>
     </div>
 </div>

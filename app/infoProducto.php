@@ -4,13 +4,15 @@
     $objId = new Producto();
     $dato = $objId->obtenerInfoProducto($_GET['id']);
 
-
+    $ptl = $_GET['ptl'];
+    $ptl = strtolower($ptl);
+    
 ?>
-<a class="waves-effect waves-light btn  margenBoton" onclick="paginaPrincipal()" ><i class="material-icons left" style="margin-left: 15px;">arrow_back</i></a>
+<a class="waves-effect waves-light btn  margenBoton" onclick="vistaPtl('<?=$ptl?>')" ><i class="material-icons left" style="margin-left: 15px;">arrow_back</i></a>
 <div class="container">
     <div class="row">
         <h1 class="col s12"><?=$dato["nombreJuego"]?></h1>
-        <img src="img/caratula/kh1.png" class="col s3"/>
+        <img src="assets/img/caratula/kh1.png" class="col s3"/>
         <div class="col s2">
             <label>PLATAFORMA:</label>
             <div class="center-align"><?=$dato["nombrePlataforma"]?></div>

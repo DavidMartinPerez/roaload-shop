@@ -395,7 +395,7 @@ function ordenar(){
 
 //######################################!./Verisiones
 //############################ Funciones para juegos
-function nuevoJuego(){
+function nuevoJuegoDEPRECATED(){
     $( ".añadirJuegoModal" ).dialog({
         resizable: false,
         height: "auto",
@@ -544,3 +544,45 @@ function nuevaPlataforma(){
     });
 }
 //########!./Plataforma
+//Nuevos Modales
+function juegoNuevo(){
+    $('#nuevoJuegoForm')[0].reset(); //limpia formulario
+    $('#nuevoJuegoForm').parsley().reset(); //resetea errores de parsley
+    $("#nuevoJuego").modal('show');
+    $("#nuevoJuegoForm").on('submit', function(){
+        $.ajax({
+            type: "POST",
+            url: "app/trastienda/guardarNuevo.php?juego",
+            data: {
+                nombre: $("#nombreJuegoNuevo").val(),
+                desc: $("#descripcionJuegoNuevo").val()
+            },
+            success: function(response){
+                if(response == "true"){
+                    $("#nuevoJuego").modal('hide');
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['success']("¡Listo!");
+                }else if(response == "false"){
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Ya existe el juego");
+                }else{
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Fallo en el servidor...");
+                }
+                console.log(response);
+            },
+            error: function(){
+                toastr.options.closeButton = true;
+                toastr.options.positionClass = 'toast-top-right';
+                toastr.options.showDuration = 1000;
+                toastr['error']("No se puedo crear el juego...");
+            }
+        })
+    });
+}
