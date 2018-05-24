@@ -187,16 +187,177 @@ $(document).ready(function(){
 });//Document ready
 
 //Rediracionamiento
-// VISTAS: version, edicion, juegos, plataformas.
+// VISTAS: version, edicion, juego, plataformas.
 function mostrarVista(vista){
-    $.ajax({url: "app/trastienda/" + vista +".php", success: function(result){
-        $("#cuerpo").empty();
-        $("#cuerpo").html(result);
-    }});
+    $.ajax({url: "app/trastienda/" + vista + ".php",
+        success: function(result){
+            $("#cuerpo").empty();
+            $("#cuerpo").html(result);
+        }
+    });
 }
+
+//  ORDER BY  ---Investigar como hacerlo desde html por ahora lo hace con diferentes consultas
+function ordenar(){
+    $.post("version.php",{
+        campo: $(".selectOrdenar").val(), //valor del select
+        orden: $(".selectAlternal").val()
+        // campo: campito //campo por ordenar
+        // orden: ordensito
+    },function(data){
+        $(".cuerpo").html(data);
+    });
+}
+
+
+//Nuevos Modales y Creación
+function juegoNuevo(){ // JUEGO NUEVO
+    $('#nuevoJuegoForm')[0].reset(); //limpia formulario
+    $('#nuevoJuegoForm').parsley().reset(); //resetea errores de parsley
+    $("#nuevoJuego").modal('show');
+    $("#nuevoJuegoForm").on('submit', function(){
+        $.ajax({
+            type: "POST",
+            url: "app/trastienda/accionesCrud.php?juego&accion=crear",
+            data: {
+                nombre: $("#nombreJuegoNuevo").val(),
+                desc: $("#descripcionJuegoNuevo").val()
+            },
+            success: function(response){
+                if(response == "true"){
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    $("#nuevoJuego").modal('hide');
+                    toastr['success']("¡Listo!");
+                }else if(response == "false"){
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Ya existe el juego");
+                }else{
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Fallo en el servidor...");
+                }
+                //FIXME: Añadir uno nuevo a la lista
+                //mostrarVista('juego');
+            },
+            error: function(){
+                toastr.options.closeButton = true;
+                toastr.options.positionClass = 'toast-top-right';
+                toastr.options.showDuration = 1000;
+                toastr['error']("No se puedo crear el juego...");
+            }
+        })
+    });
+}
+function plataformaNueva(){ // Plataforma nueva
+    // TODO: Crear formulario y modal...
+    console.log('hola');
+    $('#nuevaPlataformaForm')[0].reset(); //limpia formulario
+    $('#nuevaPlataformaForm').parsley().reset(); //resetea errores de parsley
+    $("#nuevaPlataforma").modal('show');
+    $("#nuevaPlataformaForm").on('submit', function(){
+        $.ajax({
+            type: "POST",
+            url: "app/trastienda/accionesCrud.php?plataforma&accion=crear",
+            data: {
+                nombre: $("#nombrePlataformaNueva").val()
+            },
+            success: function(response){
+                if(response == "true"){
+                    $("#nuevaPlataforma").modal('hide');
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['success']("¡Listo!");
+                }else if(response == "false"){
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Ya existe esta Version...");
+                }else{
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Fallo en el servidor... Recuerda que no puedes usar numeros para empezar los nombres...");
+                }
+                //FIXME: Añadir uno nuevo a la lista
+                //mostrarVista('plataforma');
+            },
+            error: function(){
+                toastr.options.closeButton = true;
+                toastr.options.positionClass = 'toast-top-right';
+                toastr.options.showDuration = 1000;
+                toastr['error']("No se puedo crear esta versión...");
+            }
+        })
+    });
+}
+
+function edicionNueva(){ // Edicion nueva
+    //TODO: Crear formulario y modal...
+    $('#nuevaEdicionForm')[0].reset(); //limpia formulario
+    $('#nuevaEdicionForm').parsley().reset(); //resetea errores de parsley
+    $("#nuevaEdicion").modal('show');
+    $("#nuevaEdicionForm").on('submit', function(){
+        $.ajax({
+            type: "POST",
+            url: "app/trastienda/accionesCrud.php?edicion&accion=crear",
+            data: {
+                nombre: $("#nombreEdicionNueva").val(),
+                desc: $("#descripcionEdicionNueva").val() //FIXME: Añadir funcion para terner una desc de la version(cosas que trae,regalos, etc)
+            },
+            success: function(response){
+                if(response == "true"){
+                    $("#nuevaEdicion").modal('hide');
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['success']("¡Listo!");
+                }else if(response == "false"){
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Ya existe la edicion");
+                }else{
+                    toastr.options.closeButton = true;
+                    toastr.options.positionClass = 'toast-top-right';
+                    toastr.options.showDuration = 1000;
+                    toastr['error']("Fallo en el servidor... Recuerda que no puedes usar numeros para empezar los nombres...");
+                }
+                //TODO: RECAGAR LA LISTA CON EL NUEVO PRODUCTO o Añadir uno nuevo a la lista
+                console.log(response);
+                //FIXME: Añadir uno nuevo a la lista
+                //mostrarVista('edicion');
+            },
+            error: function(){
+                toastr.options.closeButton = true;
+                toastr.options.positionClass = 'toast-top-right';
+                toastr.options.showDuration = 1000;
+                toastr['error']("No se puedo crear la edición...");
+            }
+        })
+    });
+}
+function versionNueva(){ // CREAR UNA VERSIÓN
+    //TODO: Realizar
+}
+// Eliminar Productos
+function deshabilitarVersion(idVersion){ // Deshabilitar
+    //TODO: Deshabilitar un versión de un juego
+
+}
+// EDITAR
+
+// mensajes
+//################################################# DEPRECATED #############################################
+
 //#####Funcioens para Versiones
 //Funcion para borra version / DELETE
-function borrar(idVersion){
+function borrarDEPRECATED(idVersion){
     var idEliminar =  idVersion.id;
     $(".NombreVersionEliminar").html($(idVersion).parent().siblings("td.nombreJuegoTabla").html());
     $(".edicionVersionEliminar").html($(idVersion).parent().siblings("td.edicionTabla").html());
@@ -230,7 +391,7 @@ function borrar(idVersion){
     });
 }
 //Funcion para una nueva Version / CREATE
-function nuevaVersion(){
+function nuevaVersionDEPRECATED(){
     $( ".fechapicker" ).datepicker({
                             firstDay: 1,
                             dateFormat: "yy-mm-dd"
@@ -295,7 +456,7 @@ function nuevaVersion(){
 }
 //#########################################
 //Modificar el registro / UPDATE
-function modificarVersion(elemento){
+function modificarVersionDEPRECATED(elemento){
     // Recoger los datos
     $( ".fechapickerModi" ).datepicker({
                     firstDay: 1,
@@ -379,20 +540,6 @@ function modificarVersion(elemento){
         }
     });
 }
-
-//  ORDER BY  ---Investigar como hacerlo desde html por ahoraa lo hace con diferentes consultas
-
-function ordenar(){
-    $.post("version.php",{
-        campo: $(".selectOrdenar").val(), //valor del select
-        orden: $(".selectAlternal").val()
-        // campo: campito //campo por ordenar
-        // orden: ordensito
-    },function(data){
-        $(".cuerpo").html(data);
-    });
-}
-
 //######################################!./Verisiones
 //############################ Funciones para juegos
 function nuevoJuegoDEPRECATED(){
@@ -447,7 +594,7 @@ function nuevoJuegoDEPRECATED(){
 }
 //########!./Juegos
 //##############################!./Ediciones
-function nuevaEdicion(){
+function nuevaEdicionDEPRECATED(){
     $( ".añadirEdicionModal" ).dialog({
         resizable: false,
         height: "auto",
@@ -496,7 +643,7 @@ function nuevaEdicion(){
 }
 //########!./Edicion
 //##############################!./Plataforma
-function nuevaPlataforma(){
+function nuevaPlataformaDEPRECATED(){
     $( ".añadirPlataformaModal" ).dialog({
         resizable: false,
         height: "auto",
@@ -544,45 +691,4 @@ function nuevaPlataforma(){
     });
 }
 //########!./Plataforma
-//Nuevos Modales
-function juegoNuevo(){
-    $('#nuevoJuegoForm')[0].reset(); //limpia formulario
-    $('#nuevoJuegoForm').parsley().reset(); //resetea errores de parsley
-    $("#nuevoJuego").modal('show');
-    $("#nuevoJuegoForm").on('submit', function(){
-        $.ajax({
-            type: "POST",
-            url: "app/trastienda/guardarNuevo.php?juego",
-            data: {
-                nombre: $("#nombreJuegoNuevo").val(),
-                desc: $("#descripcionJuegoNuevo").val()
-            },
-            success: function(response){
-                if(response == "true"){
-                    $("#nuevoJuego").modal('hide');
-                    toastr.options.closeButton = true;
-                    toastr.options.positionClass = 'toast-top-right';
-                    toastr.options.showDuration = 1000;
-                    toastr['success']("¡Listo!");
-                }else if(response == "false"){
-                    toastr.options.closeButton = true;
-                    toastr.options.positionClass = 'toast-top-right';
-                    toastr.options.showDuration = 1000;
-                    toastr['error']("Ya existe el juego");
-                }else{
-                    toastr.options.closeButton = true;
-                    toastr.options.positionClass = 'toast-top-right';
-                    toastr.options.showDuration = 1000;
-                    toastr['error']("Fallo en el servidor...");
-                }
-                console.log(response);
-            },
-            error: function(){
-                toastr.options.closeButton = true;
-                toastr.options.positionClass = 'toast-top-right';
-                toastr.options.showDuration = 1000;
-                toastr['error']("No se puedo crear el juego...");
-            }
-        })
-    });
-}
+//############################################### /.DEPRECATED #############################################

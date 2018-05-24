@@ -13,6 +13,7 @@ RewriteRule ^registrarse$ app/acceder/crearCuenta.php
 
 # Admin
 RewriteRule ^admin$ app/trastienda/admin.php
+RewriteRule ^noCookies_noLife$ app/vistas/error.html
 
 
 ######## Páginas de errores ########################

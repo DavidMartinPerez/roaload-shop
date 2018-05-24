@@ -41,3 +41,32 @@
 		</div>
 	</div>
 </div>
+<!--  MODAL JUEGO NUEVO -->
+<div id="nuevoJuego" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Nuevo Juego</h4>
+			</div>
+			<div class="modal-body">
+				<form id="nuevoJuegoForm" data-parsley-validate novalidate>
+					<div class="form-group">
+						<label for="text-input1">Nombre</label>
+						<input type="text" id="nombreJuegoNuevo" class="form-control" required />
+					</div>
+					<div class="form-group">
+						<label for="text-input2">Descripción</label>
+						<textarea type="text" id="descripcionJuegoNuevo" class="form-control" required data-parsley-minlength="10" required></textarea>
+					</div>
+					<br/>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+						<button type="submit" class="btn btn-success">Crear</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+<div-->
+<!--  /.MODAL JUEGO NUEVO -->

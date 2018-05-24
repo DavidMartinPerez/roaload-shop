@@ -49,6 +49,7 @@
 							<th>Stock</th>
 							<th>Fecha Salida</th>
 							<th>Nombre Distribuidora</th>
+							<th>Habilitado</th>
 							<th>Acción</th>
 						</tr>
 					</thead>
@@ -62,8 +63,14 @@
 							<td class="stockTabla" ><?=$row["stock"] ?></td>
 							<td class="fechaSalidaTabla"><?=$row["fechaSalida"] ?></td>
 							<td class="disTabla" id="<?=$row['idDistribuidora'] ?>"><?=$row["nombreDistribuidora"] ?></td>
+							<td class="habilitado"><?=$row['activo']?></td>
 							<td><a id="<?=$row['idVersion'] ?>" onclick="modificarVersion(this)" class="editar"><button type="button" class="btn label label-warning"><i class="material-icons">editar</i></button></a>
-							<a class="eliminarVersion" onclick="borrar(this)" id="<?=$row['idVersion'] ?>"><button type="button" class="btn label label-danger"><i class="material-icons">eliminar</i></button></a></td>
+							<a class="eliminarVersion" onclick="deshabilitar(this)" id="<?=$row['idVersion'] ?>">
+								<!-- FIXME: tooltip bootstrap -->
+								<button type="button" class="btn label label-danger" data-toggle="tooltip" data-placement="bottom" title="Deshabilita una versión de un videojuego por problemas o por que ya esta descatalogado">
+									<i class="material-icons">deshabilitar</i>
+								</button>
+							</a></td>
 							</tr>
 							<?php }
 							?>

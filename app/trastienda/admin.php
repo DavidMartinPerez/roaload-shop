@@ -410,67 +410,6 @@
 	<div class="añadirVersionModal" title="¡Añadir Version!" style="display:none">
 		<?php //include "formularioVersion.php" ?>
 	</div-->
-	<!--div class="añadirJuegoModal" title="¡Añadir Juego!" style="display:none">
-		<div id="formularioNuevo">
-			<form id="formNuevoJuego">
-				<div>
-					Nombre:<br>
-					<input type="text" id="nombreNuevo" name="nombre" />
-				</div><br>
-				<div>
-					Descripción:<br>
-					<textarea id="desNuevo" class="materialize-textarea"></textarea>
-				</div><br>
-			</form>
-		</div>
-	</div>
-	<div class="añadirEdicionModal" title="¡Añadir Edicion!" style="display:none">
-		<div id="formularioNuevo">
-			<form id="formNuevaEdicion">
-				<div>
-					Edicion:<br>
-					<input type="text" id="edicionNueva" name="edicion" />
-				</div>
-			</form>
-		</div>
-	</div>
-	<div class="añadirPlataformaModal" title="¡Añadir Plataforma!" style="display:none">
-		<form id="formNuevaPlataforma">
-			<div>
-				Plataforma:<br>
-				<input type="text" id="plataNueva" name="plata" />
-			</div><br>
-		</form>
-	</div-->
-	<!--  MODAL JUEGO NUEVO -->
-	<div id="nuevoJuego" class="modal fade">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-					<h4 class="modal-title">Nuevo Juego</h4>
-				</div>
-				<div class="modal-body">
-					<form id="nuevoJuegoForm" data-parsley-validate novalidate>
-						<div class="form-group">
-							<label for="text-input1">Nombre</label>
-							<input type="text" id="nombreJuegoNuevo" class="form-control" required />
-						</div>
-						<div class="form-group">
-							<label for="text-input2">Descripción</label>
-							<textarea type="text" id="descripcionJuegoNuevo" class="form-control" required data-parsley-minlength="10" required></textarea>
-						</div>
-						<br/>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-							<button type="submit" class="btn btn-success">Crear</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-	<div>
-	<!--  /.MODAL JUEGO NUEVO -->
 	<!-- END WRAPPER -->
 	<!-- Javascript -->
 	<script src="assets/vendor/jquery/jquery.min.js"></script>
@@ -488,7 +427,6 @@
 	<script src="assets/vendor/toastr/toastr.js"></script>
 	<script src="assets/scripts/common.js"></script>
 	<script src="assets/js/main.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
 </body>
 
 </html>

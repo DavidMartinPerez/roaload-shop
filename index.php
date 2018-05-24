@@ -7,6 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="assets/css/index.css">
 		<!-- Font icons Material -->
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
 		<!-- CSS materialize -->
 		<link type="text/css" rel="stylesheet" href="assets/css/materialize.min.css"  media="screen,projection"/>
 		<!-- CSS del login-->

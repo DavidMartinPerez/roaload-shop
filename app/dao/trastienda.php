@@ -8,7 +8,8 @@
             global $bd;
             //SQL Para recuperar todos los Juegos y Consolas.
             $sqlJOIN = "SELECT version.idVersion, juego.idJuego, ptl.idPlataforma, ed.idEdicion, dis.idDistribuidora,
-                        juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora
+                        juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora,
+                        version.activo
         	 			FROM videojuego juego, versionjuego version, edicion ed , plataforma ptl, distribuidora dis
         				where version.idEdicion = ed.idEdicion AND version.idJuego = juego.idJuego AND version.idPlataforma = ptl.idPlataforma
                         AND version.idDistribuidora = dis.idDistribuidora ORDER BY $campo $orden";
@@ -28,20 +29,18 @@
 
             $reg = $bd->query($sqlRR);
             $bd->close();
-            
+
             return $reg;
         }
         //########## / recuperar input ##################
 
         //########## GUARDAR GENERICO ##################
-        public function guardarGenerico($tabla, $nombre, $desc){
+        public function guardarGenerico($tabla, $nombre, $desc = null){
             global $bd;
-            //TODO: UTF-8 and realscape
+            //TODO: realscape
             if($tabla == 'videojuego'){
                 $sqlComprobar = "SELECT * FROM videojuego WHERE nombreJuego = '$nombre'";
-
                 $existen = $bd->query($sqlComprobar);
-
                 if($existen->num_rows){
                     return false;
                 }else{
@@ -50,14 +49,32 @@
                     $bd->close();
                     return true;
                 }
-                
             }
-            
+
             if($tabla == 'plataforma'){
-
+                $sqlComprobar = "SELECT * FROM plataforma WHERE nombrePlataforma = '$nombre'";
+                $existen = $bd->query($sqlComprobar);
+                if($existen->num_rows){
+                    return false;
+                } else {
+                    $sql = "INSERT INTO `plataforma`(`idPlataforma`, `nombrePlataforma`) VALUES (NULL,'$nombre')";
+                    $bd->query($sql);
+                    $bd->close();
+                    return true;
+                }
             }
-            if($tabla == 'edicion'){
 
+            if($tabla == 'edicion'){
+                $sqlComprobar = "SELECT * FROM edicion WHERE nombreEdicion = '$nombre'";
+                $existen = $bd->query($sqlComprobar);
+                if($existen->num_rows){
+                    return false;
+                } else {
+                    $sql = "INSERT INTO `edicion`(`idEdicion`, `nombreEdicion`, `descripcion`) VALUES (NULL,'$nombre', '$desc')";
+                    $bd->query($sql);
+                    $bd->close();
+                    return true;
+                }
             }
         }
         //########## / GUARDAR GENERICO ##################
@@ -65,5 +82,8 @@
         //########## GUARDAR VERSION DEFINITIVA DE UN JUEGO ##################
 
         //########## / GUARDAR VERSION ##################
+        //TODO: COMPROBAR SI ESTA EN RESERVA POR LA FECHA Y CUANDO UN JUEGO SALE UNA TAREA DIARIA Y MANDAR MENSAJE A TODOS LOS QUE TENIAN JUEGOS RESRVADOS
+        // CREAR RESERVAS ES DIFERENTE POR QUE TENDRÁ UN LIMITE lo cual tendré que controlar diferente en otra tabla que cuando salga a la fecha final acabe la reserva
+        //TODO: Crear stock de productos.
     } //class Trastienda
 ?>
