@@ -6,7 +6,7 @@
 
     $ptl = $_GET['ptl'];
     $ptl = strtolower($ptl);
-    
+
 ?>
 <a class="waves-effect waves-light btn  margenBoton" onclick="vistaPtl('<?=$ptl?>')" ><i class="material-icons left" style="margin-left: 15px;">arrow_back</i></a>
 <div class="container">

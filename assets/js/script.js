@@ -62,26 +62,26 @@ $(document).ready(function(){
         onOpen: function(el) {  }, // A function to be called when sideNav is opened
         onClose: function(el) {  }, // A function to be called when sideNav is closed
     });
-    $.ajax({url: "app/vistas/infoInicio.php?nsw", success: function(result){
+    $.ajax({url: "app/vistas/infoInicio.php?nsw&init", success: function(result){
         $("#nswIndex").html(result);
-        $("#vendidoIndex").html(result);
-        $("#salidaIndex").html(result);
+        //$("#vendidoIndex").html(result);
+        //$("#salidaIndex").html(result);
     }});
-    $.ajax({url: "app/vistas/infoInicio.php?ps4", success: function(result){
+    $.ajax({url: "app/vistas/infoInicio.php?ps4&init", success: function(result){
         $("#ps4Index").html(result);
     }});
-    $.ajax({url: "app/vistas/infoInicio.php?xbox", success: function(result){
+    $.ajax({url: "app/vistas/infoInicio.php?xone&init", success: function(result){
         $("#xboxIndex").html(result);
     }});
-    $.ajax({url: "app/vistas/infoInicio.php?pc", success: function(result){
+    $.ajax({url: "app/vistas/infoInicio.php?pc&init", success: function(result){
         $("#pcIndex").html(result);
     }});
 });//Document ready
 
 //##################################################################################
 
-function vistaPtl(plataforma){
-    $.ajax({url: "app/vistas/infoInicio.php?" + plataforma + "&filtro=20",
+function vistaPtl(plataforma, filtro=4,pagina=1){
+    $.ajax({url: "app/vistas/infoInicio.php?" + plataforma + "&filtro=" + filtro + "&pagina=" + pagina,
         success: function(result){
             $(".contenido").html(result);
             if(plataforma == 'todo'){

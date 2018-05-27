@@ -124,10 +124,10 @@
 							</div>
 						</li>
 						<li><a onclick="vistaPtl('todo')">Todos</a></li>
-						<li><a onclick="vistaPtl('nsw')">NSW</a></li>
-				        <li><a onclick="vistaPtl('ps4')">PS4</a></li>
-						<li><a onclick="vistaPtl('xone')">XO</a></li>
-						<li><a onclick="vistaPtl('pc')">PC</a></li>
+						<li><a onclick="vistaPtl('nsw',2)">NSW</a></li>
+				        <li><a onclick="vistaPtl('ps4',2)">PS4</a></li>
+						<li><a onclick="vistaPtl('xone',2)">XO</a></li>
+						<li><a onclick="vistaPtl('pc',2)">PC</a></li>
 						<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
 						<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
 					</ul>
