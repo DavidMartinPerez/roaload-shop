@@ -1,4 +1,4 @@
-<li><a class="subheader">Cesta</a></li>
+<li><a class="subheader letra-semimediana">Cesta</a></li>
 <?php
     if(isset($_SESSION['carro'])){
         $arrayC = unserialize($_SESSION['carro']);
@@ -9,9 +9,10 @@
             while(count($arrayC) > $i){
         ?>
                 <a><i class="material-icons">videogame_asset</i>
-                    <?php
-                        echo "ID =".$arrayC[$i]["id"]."CANTIDAD=".$arrayC[$i]["cantidad"];
-                    ?>
+
+                        <div class="" onclick="infoVersion(this.id, 'Info', 'Cesta')" id="<?=$arrayC[$i]["id"] ?>"><?=$arrayC[$i]["cantidad"] ?></div>
+                        <!--"ID =".$arrayC[$i]["id"]."CANTIDAD=".$arrayC[$i]["cantidad"];-->
+
                 </a>
             <?php
                 $i++;
@@ -19,8 +20,9 @@
             ?>
         </li>
 <br>
-<?php }else{
+<?php }else{ ?>
 
-    echo "<li style='padding-left: 20px'>No tienes productos</li>";
+    <li style='padding-left: 20px'>No tienes productos</li>
+    <div style='padding-left: 20px'>Si no sabes como puedes sigue nuestra guía <span onclick="alert('ajax FAQ #COMPRAR')">aquí</span></div>
 
-}?>
+<?php } ?>

@@ -153,7 +153,7 @@
 				<nav>
 					<div class="nav-wrapper teal lighten-1">
 						<div class="col s12 migasDePan">
-							<a href="principal" onclick="limpiarBreadcrum()" class="breadcrumb">Inicio</a>
+							<a href="principal" onclick="limpiarBreadcrum()" class="letra-mediana">Inicio</a>
 						</div>
 					</div>
 				</nav>

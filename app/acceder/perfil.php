@@ -19,21 +19,21 @@
 		<div class="user-view">
 			<div align="center">
 				<img class="circle" src="assets/img/iconoWeb.png"></a>
-				<div><?=unserialize($_SESSION['datos'])[0]?> <?=unserialize($_SESSION['datos'])[1]?></div>
-				<div>@<?=$_SESSION["usr"] ?></div>
+				<div class="letra-semimediana"><?=unserialize($_SESSION['datos'])[0]?> <?=unserialize($_SESSION['datos'])[1]?></div>
+				<div class="letra-negrita">@<?=$_SESSION["usr"] ?></div>
 			</div>
 		</div>
 	</li>
 	<li><div class="divider"></div></li>
 
-	<li><a><i class="material-icons">build</i>Editar perfil</a></li>
-	<li><a><i class="material-icons">mail</i>Mensajes</a></li>
+	<li><a class="letra-negrita"><i class="material-icons">build</i>Editar perfil</a></li>
+	<li><a class="letra-negrita"><i class="material-icons">mail</i>Mensajes</a></li>
 	<?php
 		if($_SESSION["rol"] == "admin"){?>
 			<li><a href="admin" ><i class="material-icons">brightness_low</i>Administrar Web</a></li>
 		<?php } else  { ?>
-			<li><a><i class="material-icons">loyalty</i>Pedidos pendientes</a></li>
-			<li><a><i class="material-icons">history</i>Historial de pedidos</a></li>
+			<li><a class="letra-negrita"><i class="material-icons">loyalty</i>Pedidos pendientes</a></li>
+			<li><a class="letra-negrita"><i class="material-icons">history</i>Historial de pedidos</a></li>
 		<?php }
 	?>
 	<li><div class="divider"></div></li>
@@ -41,5 +41,6 @@
 			<?php include 'app/vistas/carroPerfil.php' ?>
 		</div>
 	<li><div class="divider"></div></li>
+	<li><a class="btn" onclick="cargarCesta()">Ir a la cesta</a></li>
 	<li><a class="btn" href="login?exit">Cerrar Sesión</a></li>
 <?php } ?>
