@@ -66,7 +66,8 @@ $(document).ready(function(){
         $("#nswIndex").html(result);
         //$("#vendidoIndex").html(result);
         //$("#salidaIndex").html(result);
-    }});
+        }
+    });
     $.ajax({url: "app/vistas/infoInicio.php?ps4&init", success: function(result){
         $("#ps4Index").html(result);
     }});
@@ -168,4 +169,16 @@ function setCookie(cname, exdays) {
 function aceptarCookies(){
     setCookie('cookies', 365);
     $('.msgUsoCookie').fadeOut(1000);
+}
+
+// Redirecionamos a la cesta
+
+function cargarCesta(){
+    $.ajax({
+        url: "./app/vistas/cesta.php",
+        method: "POST",
+        success: function(result){
+            $(".contenido").html(result);
+        }
+    });
 }
