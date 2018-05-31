@@ -1,5 +1,6 @@
 <?php
     //TODO: Probar que todo funcione
+	// Crear metodo para aumentar o disminuir el stock del producto y mostrarlo
     //FIXME: A lo mejor hay errores con la exportacion del array de objectos.
     //TODO: mirar la otra vista que estará preparada para mostrar el objecto y funcionar directamente.
 	class ProductoCesta{ // Objecto con los datos que se mostrarán en cesta
@@ -19,6 +20,18 @@
 			this->$nombrePlataforma = $nombrePlataforma;
 			this->$nombreDistribuidora = $nombreDistribuidora;
 			this->$precio = $precio;
+		}
+		public function masStock(){
+			this->$cantidad = $cantidad+1;
+		}
+		public function menosStock(){
+			this->$cantidad = $cantidad-1;
+		}
+		public function getCantidad(){ //Esta servira para saber los datos mandarle a base de datos
+			return this->$cantidad;
+		}
+		public function getId(){ //Esta servira para saber los datos mandarle a base de datos
+			return this->$idProducto;
 		}
 	}
     require 'conexion.php';
