@@ -13,25 +13,25 @@
 		public $precioPorArticulo; // Precio del producto
 
 		public function __construct($id,$cantidad,$nombreJuego,$nombreEdicion,$nombrePlataforma,$nombreDistribuidora,$precio){
-			this->$idProducto = $id;
-			this->$cantidad = $cantidad;
-			this->$nombreJuego = $nombreJuego;
-			this->$nombreEdicion = $nombreEdicion;
-			this->$nombrePlataforma = $nombrePlataforma;
-			this->$nombreDistribuidora = $nombreDistribuidora;
-			this->$precio = $precio;
+			$this->idProducto = $id;
+			$this->cantidad = $cantidad;
+			$this->nombreJuego = $nombreJuego;
+			$this->nombreEdicion = $nombreEdicion;
+			$this->nombrePlataforma = $nombrePlataforma;
+			$this->nombreDistribuidora = $nombreDistribuidora;
+			$this->precio = $precio;
 		}
 		public function masStock(){
-			this->$cantidad = $cantidad+1;
+			$this->cantidad = $cantidad+1;
 		}
 		public function menosStock(){
-			this->$cantidad = $cantidad-1;
+			$this->cantidad = $cantidad-1;
 		}
 		public function getCantidad(){ //Esta servira para saber los datos mandarle a base de datos
-			return this->$cantidad;
+			return $this->cantidad;
 		}
 		public function getId(){ //Esta servira para saber los datos mandarle a base de datos
-			return this->$idProducto;
+			return $this->idProducto;
 		}
 	}
     require 'conexion.php';
@@ -45,7 +45,6 @@
 			$productos = [];
             $ArrayLength = count($arrayCarrito);
             while($i < $ArrayLength){
-				
 				//SQL Para recuperar todos los Juegos y Consolas que esten habilitados!
 				$sqlDatosCesta = "SELECT version.idVersion, juego.nombreJuego, ed.nombreEdicion, ptl.nombrePlataforma, version.precio, version.stock, version.fechaSalida, dis.nombreDistribuidora,version.img
 				FROM videojuego juego, versionjuego version, edicion ed , plataforma ptl, distribuidora dis
@@ -53,7 +52,6 @@
 				AND (idVersion = ". $arrayCarrito[$i]["id"] .")";
 
 				$reg = $bd->query($sqlDatosCesta);
-				$bd->close();
 				$datos = mysqli_fetch_assoc($reg);
 
 				//Creamos los datos del objecto.
@@ -61,17 +59,18 @@
 				$cantidad = $arrayCarrito[$i]["cantidad"];
 				$nombreJuego = $datos["nombreJuego"];
 				$nombreEdicion = $datos["nombreEdicion"];
-				$nombrePlataforma = $datos["nombrePlataforma"]
+				$nombrePlataforma = $datos["nombrePlataforma"];
 				$nombreDistribuidora = $datos["nombreDistribuidora"];
 				$precio = $datos["precio"];
 				//Creamos el objecto con los datos.
 				$objecto = new ProductoCesta($IdProducto,$cantidad,$nombreJuego,$nombreEdicion,$nombrePlataforma,$nombreDistribuidora,$precio);
 				// Lo añadimos al array de objectos que devolveremos.
-				array.push($ArrayObjectoProdutos, $objecto);
+				array_push($ArrayObjectoProdutos, $objecto);
 				//aumnetamos la variable para el siguiente producto.
 				$i++;
             }
-            
+
+			$bd->close();
             return $ArrayObjectoProdutos;
         }
         //########## /Obtener todos los productos de la cesta ##################
