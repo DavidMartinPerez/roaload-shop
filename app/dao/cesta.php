@@ -11,7 +11,6 @@
 		public $nombrePlataforma; // Nombre de la plataforma
 		public $nombreDistribuidora; // Nombre de la distribuidora
 		public $precioPorArticulo; // Precio del producto
-
 		public function __construct($id,$cantidad,$nombreJuego,$nombreEdicion,$nombrePlataforma,$nombreDistribuidora,$precio){
 			$this->idProducto = $id;
 			$this->cantidad = $cantidad;
@@ -20,18 +19,6 @@
 			$this->nombrePlataforma = $nombrePlataforma;
 			$this->nombreDistribuidora = $nombreDistribuidora;
 			$this->precio = $precio;
-		}
-		public function masStock(){
-			$this->cantidad = $cantidad+1;
-		}
-		public function menosStock(){
-			$this->cantidad = $cantidad-1;
-		}
-		public function getCantidad(){ //Esta servira para saber los datos mandarle a base de datos
-			return $this->cantidad;
-		}
-		public function getId(){ //Esta servira para saber los datos mandarle a base de datos
-			return $this->idProducto;
 		}
 	}
     require 'conexion.php';
@@ -42,7 +29,6 @@
             global $bd;
 			$ArrayObjectoProdutos = [];
 			$i = 0;
-			$productos = [];
             $ArrayLength = count($arrayCarrito);
             while($i < $ArrayLength){
 				//SQL Para recuperar todos los Juegos y Consolas que esten habilitados!
@@ -51,9 +37,10 @@
 				WHERE version.idEdicion = ed.idEdicion AND version.idJuego = juego.idJuego AND version.idPlataforma = ptl.idPlataforma AND version.idDistribuidora = dis.idDistribuidora AND version.activo = 1
 				AND (idVersion = ". $arrayCarrito[$i]["id"] .")";
 
-				$reg = $bd->query($sqlDatosCesta);
-				$datos = mysqli_fetch_assoc($reg);
 
+				$reg = $bd->query($sqlDatosCesta);
+
+				$datos = mysqli_fetch_assoc($reg);
 				//Creamos los datos del objecto.
 				$IdProducto = $arrayCarrito[$i]["id"];
 				$cantidad = $arrayCarrito[$i]["cantidad"];
@@ -64,16 +51,15 @@
 				$precio = $datos["precio"];
 				//Creamos el objecto con los datos.
 				$objecto = new ProductoCesta($IdProducto,$cantidad,$nombreJuego,$nombreEdicion,$nombrePlataforma,$nombreDistribuidora,$precio);
+
 				// Lo añadimos al array de objectos que devolveremos.
 				array_push($ArrayObjectoProdutos, $objecto);
 				//aumnetamos la variable para el siguiente producto.
 				$i++;
             }
-
-			$bd->close();
             return $ArrayObjectoProdutos;
+			$bd->close();
         }
         //########## /Obtener todos los productos de la cesta ##################
     } //class Producto
 ?>
-

@@ -1,20 +1,26 @@
 <?php
-    session_start();
-    if(isset($_SESSION["carro"])){
-        $ds = DIRECTORY_SEPARATOR;
-        $base_dir = realpath(dirname(__FILE__)  . $ds . '..') . $ds; //Obtenemos el path actual
-        require_once("{$base_dir}dao{$ds}cesta.php");
-        //Añadimos el array de producto que tenemos serializado en la cookie Carro a una variable
-        //Le pasaremos a la funcion para que reorecoja todos los datos de cada producto en la cesta
+	session_start();
+	$ds = DIRECTORY_SEPARATOR;
+	$base_dir = realpath(dirname(__FILE__)  . $ds . '..') . $ds; //Obtenemos el path actual
+	require_once("{$base_dir}dao{$ds}cesta.php");
+	//Añadimos el array de producto que tenemos serializado en la cookie Carro a una variable
+	//Le pasaremos a la funcion para que reorecoja todos los datos de cada producto en la cesta
 	$arrayCarrito = unserialize($_SESSION["carro"]);
 	// Recuperamos todos los datos de la BBDD
-		$cesta = new Cesta;
+	$cesta = new Cesta;
 
-		$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
-		//Obtenemos todos los datos necesarios y los expulsamos
-		$totalPrecio = 0;
-		$ArrayLength = count($arrayObjectoDatos);
-		$i = 0;
+	$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
+	//Obtenemos todos los datos necesarios y los expulsamos
+	$totalPrecio = 0;
+	$ArrayLength = count($arrayObjectoDatos);
+	$i = 0;
+	$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
+	//Obtenemos todos los datos necesarios y los expulsamos
+	$totalPrecio = 0;
+	$ArrayLength = count($arrayObjectoDatos);
+	$i= 0;
+
+    if(!isset($_GET["pago"])){
 		?>
 		<!-- Vista de la Cesta -->
 		<br>
@@ -24,20 +30,12 @@
 			</div>
 		</div>
 	<?php
-	$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
-	//Obtenemos todos los datos necesarios y los expulsamos
-	$totalPrecio = 0;
-	$ArrayLength = count($arrayObjectoDatos);
-	$i = 0;
-	
-	//Vista de la Cesta
-	if(isset($_GET["pago"])){ ?>
-		<h1>Resumen</h1>
-	<?php } else{ ?>
+
+	?>
 
 		<h1>Tu cesta: </h1>
 
-		<?php
+	<?php
 		while($i < $ArrayLength){ //TODO: Comprobar que esto funciona correctamente
 			$idP = $arrayObjectoDatos[$i]->idProducto;
 			$nombre = $arrayObjectoDatos[$i]->nombreJuego;
@@ -70,12 +68,26 @@
 				<a class="btn" onclick="pagarCesta()" style="margin-bottom: 14px;">Pagar!</a>
 			</div>
 		</div>
-	}
-    <?php }else{ ?>
-            <div class="container">
-                <div class="">
-                    <h1>¡Aun no has añadido ningún articulo a tu cesta!</h1>
-                </div>
-            </div>
+    <?php } else { ?>
+		<!-- Vista en resumen vista pago -->
+		<?php while($i < $ArrayLength){ //TODO: Comprobar que esto funciona correctamente
+			$nombre = $arrayObjectoDatos[$i]->nombreJuego;
+			$edicion = $arrayObjectoDatos[$i]->nombreEdicion;
+			$plataforma = $arrayObjectoDatos[$i]->nombrePlataforma;
+			$cantidad = $arrayObjectoDatos[$i]->cantidad;
+			$precio = $arrayObjectoDatos[$i]->precio;
+			$precioTotalArticulos = $precio*$cantidad;
+			?>
+			<div>
+				<p><?=$nombre ?> <?=$edicion?> <?=$plataforma?> </p>
+				<p><?=$cantidad?> x <?=$precio?> = <?=$precioTotalArticulos?></p>
+			</div>
+			<hr>
+
+
+			<?php $i++;
+			$totalPrecio = $totalPrecio+$precioTotalArticulos;
+		} ?>
+		<div class="color:red">Este es el total de todo: <?=$totalPrecio?></div>
     <?php }
 ?>

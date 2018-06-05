@@ -53,3 +53,6 @@ a.margenBoton{
 .letra-negrita{
     font-weight: bold !important;
 }
+.letra-roboco{
+    font-family: GillSans, Calibri, Trebuchet, sans-serif;
+}

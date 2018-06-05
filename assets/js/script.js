@@ -194,10 +194,18 @@ function pagarCesta(){
         method: "POST",
         success: function(result){
             $(".contenido").html(result);
+            Materialize.updateTextFields(); // Abrimos formularios
             $('.collapsible').collapsible({
                 accordion: false, // A setting that changes the collapsible behavior to expandable instead of the default accordion style
-                onOpen: function(el) { console.log(el) }, // Callback for Collapsible open
+                onOpen: function(el) { }, // Callback for Collapsible open
                 onClose: function(el) {  } // Callback for Collapsible close
+            });
+            $.ajax({ // Resumen del pago
+                url: "./app/vistas/cesta.php?pago",
+                method: "POST",
+                success: function(resumen){
+                    $(".resumenPago").html(resumen);
+                }
             });
         }
     });
