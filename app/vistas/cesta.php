@@ -6,9 +6,10 @@
         require_once("{$base_dir}dao{$ds}cesta.php");
         //Añadimos el array de producto que tenemos serializado en la cookie Carro a una variable
         //Le pasaremos a la funcion para que reorecoja todos los datos de cada producto en la cesta
-		$arrayCarrito = unserialize($_SESSION["carro"]);
-		// Recuperamos todos los datos de la BBDD
-        $cesta = new Cesta;
+	$arrayCarrito = unserialize($_SESSION["carro"]);
+	// Recuperamos todos los datos de la BBDD
+		$cesta = new Cesta;
+
 		$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
 		//Obtenemos todos los datos necesarios y los expulsamos
 		$totalPrecio = 0;
@@ -22,6 +23,18 @@
 				<a class="btn" onclick="pagarCesta()">Pagar!</a>
 			</div>
 		</div>
+	<?php
+	$arrayObjectoDatos = $cesta->obtenerTodosProductos($arrayCarrito);
+	//Obtenemos todos los datos necesarios y los expulsamos
+	$totalPrecio = 0;
+	$ArrayLength = count($arrayObjectoDatos);
+	$i = 0;
+	
+	//Vista de la Cesta
+	if(isset($_GET["pago"])){ ?>
+		<h1>Resumen</h1>
+	<?php } else{ ?>
+
 		<h1>Tu cesta: </h1>
 
 		<?php
@@ -57,6 +70,7 @@
 				<a class="btn" onclick="pagarCesta()" style="margin-bottom: 14px;">Pagar!</a>
 			</div>
 		</div>
+	}
     <?php }else{ ?>
             <div class="container">
                 <div class="">
