@@ -16,6 +16,12 @@
 		$i = 0;
 		?>
 		<!-- Vista de la Cesta -->
+		<br>
+		<div class="row">
+			<div class="col offset-m10">
+				<a class="btn" onclick="pagarCesta()">Pagar!</a>
+			</div>
+		</div>
 		<h1>Tu cesta: </h1>
 
 		<?php
@@ -46,7 +52,11 @@
 			$totalPrecio = $totalPrecio+$precioTotalArticulos;
 		} ?>
 		<div class="color:red">Este es el total de todo: <?=$totalPrecio?></div>
-
+		<div class="row">
+			<div class="col offset-m10">
+				<a class="btn" onclick="pagarCesta()" style="margin-bottom: 14px;">Pagar!</a>
+			</div>
+		</div>
     <?php }else{ ?>
             <div class="container">
                 <div class="">

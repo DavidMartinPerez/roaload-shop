@@ -182,3 +182,26 @@ function cargarCesta(){
         }
     });
 }
+
+//###################################################
+//Logica del metodo de pago
+//###################################################
+
+// Redirecionamos al pago
+function pagarCesta(){
+    $.ajax({
+        url: "./app/vistas/pago.php",
+        method: "POST",
+        success: function(result){
+            $(".contenido").html(result);
+            $('.collapsible').collapsible({
+                accordion: false, // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+                onOpen: function(el) { console.log(el) }, // Callback for Collapsible open
+                onClose: function(el) {  } // Callback for Collapsible close
+            });
+        }
+    });
+}
+
+//Collapse de los pasos del pago
+
