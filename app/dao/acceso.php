@@ -1,5 +1,4 @@
 <?php
-
     require 'conexion.php';
     class Acceso {
 
@@ -14,7 +13,7 @@
             if($reg->num_rows) {
                 //crear las variables de sesion necesarias
                 $_SESSION["id"] = session_id();
-                $_SESSION["usr"] = $_POST["usr"];
+                $_SESSION["usr"] = $usr;
                 $_SESSION["entrada"] = time();
 
                 //localizamos si el usuario es administrador...
@@ -24,17 +23,15 @@
                     $row["apellido"],
                     $row["idUsuario"]
                 ]);
-                echo $row["admin"];
                 if ($row["admin"] == 0){
                     $_SESSION["rol"] = "usuario";
                 } else {
                     $_SESSION["rol"] = "admin";
                 }
-                header("Location: principal");
+                return true;
 
             } else {
-                $msg = "<p style='color:red'> ¡Datos no correctos!:(</p>";
-                return $msg;
+                return false;
             }
             $bd->close();
         } //ACEDER
@@ -43,9 +40,7 @@
         public function desconectar(){
             //Destruimos todas las sesiones
             $_SESSION = [];
-    		session_destroy();
-
-            header("Location: principal");
+            session_destroy();
         } //Desconectar
 
         //####### SESSION ACTIVA ##############

@@ -89,8 +89,7 @@
 	<body>
 		<!-- sideNav sobre el perfil del usuario -->
 		<ul id="slide-out" class="side-nav teal darken-1">
-			<div>
-				<?php include "app/acceder/perfil.php" ?>
+			<div class="navPerfil">
 			</div>
 		</ul>
 		<!-- ./sideNav -->
@@ -108,7 +107,7 @@
 				<div class="nav-wrapper teal darken-1">
 					<!-- TODO: Crear un icono para Perfil en modo movil -->
 					<a href="#" data-activates="mobile-demo" class="button-collapse"><i class="material-icons">menu</i></a>
-					<a href="principal" class="brand-logo">Roaload</a>
+					<a onclick="home();" class="brand-logo">Roaload</a>
 					<a></a>
 					<ul id="nav-mobile" class="right hide-on-med-and-down">
 						<li>
@@ -153,7 +152,7 @@
 				<nav>
 					<div class="nav-wrapper teal lighten-1">
 						<div class="col s12 migasDePan">
-							<a href="principal" onclick="limpiarBreadcrum()" class="letra-mediana">Inicio</a>
+							<a onclick="home()" class="letra-mediana">Inicio</a>
 						</div>
 					</div>
 				</nav>
@@ -162,112 +161,6 @@
 		<!-- inicio del cuerpo que cambiará -->
 	  	<div class="container">
 			<div class="contenido" style="background-color: #f7f7f7">
-				<!-- Slider Carousel con Noticias -->
-				<div class="row">
-				  	<div class="slider ">
-						<ul class="slides">
-							<li><!-- TODO: Personalizar las noticias iniciales. -->
-								<img src="https://professor-falken.com/wp-content/uploads/2017/07/montanas-picos-vistas-horizonte-lejania-altura-cordillera-Fondos-de-Pantalla-HD-professor-falken.com_.jpg">
-								<div class="caption center-align">
-									<h3>¡Bienvenido a Roaload!</h3>
-									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
-								</div>
-							</li>
-							<li>
-								<img src="http://www.trabajo1.esy.es/images/diez.jpg">
-								<div class="caption left-align">
-									<h3>Left Aligned Caption</h3>
-									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
-								</div>
-							</li>
-							<li>
-								<img src="http://www.trabajo1.esy.es/images/siete.jpg">
-								<div class="caption right-align">
-									<h3>Right Aligned Caption</h3>
-									<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
-								</div>
-							</li>
-							<li>
-								<img src="http://www.nintenderos.com/wp-content/uploads/2018/05/Pok%C3%A9mon.jpg">
-								<div class="caption center-align">
-								</div>
-							</li>
-						</ul>
-					</div>
-				</div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav> <!-- TODO: Terminar Más vendidos y proximas salidas [Falta base de datos personalziada para estos campos]-->
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">MÁS VENDIDOS</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="vendidoIndex"></div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav>
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">PRÓXIMAS SALIDAS</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="salidaIndex"></div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav>
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">NOVEDADES NINTENDO SWITCH</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="nswIndex"></div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav>
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">NOVEDADES PS4</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="ps4Index"></div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav>
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">NOVEDADES XBOX ONE</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="xboxIndex"></div>
-				<div class="row">
-					<div class="" style="padding-top: 20px">
-						<nav>
-							<div class="nav-wrapper teal lighten-1">
-								<div class="col s12">
-									<a class="breadcrumb">NOVEDADES PC</a>
-								</div>
-							</div>
-						</nav>
-					</div>
-				</div>
-				<div id="pcIndex"></div>
-				 <!-- /.Slider Carousel con Noticias -->
 			</div>
 		</div>
 		<!-- contenido de la web -->

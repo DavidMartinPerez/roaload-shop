@@ -1,6 +1,7 @@
 'use strict'
 
 $(document).ready(function(){
+    home();
     // MODALES INICIALES
     if(!getCookie('usoAtajos')){
         console.log("Cookies: Muestro modal de atajos de teclado.")
@@ -9,7 +10,6 @@ $(document).ready(function(){
     if(!getCookie('cookies')){
         $('body').append('<div class="msgUsoCookie">Cookies<button onclick="aceptarCookies()">Aceptar</button><a class="btn" href="noCookies_noLife">Cancelar</button></div>');
     }
-
     // ATAJOS DE TECLADO PARA FUNCIONALIDADES DE LA WEB
     var atajoTeclado = true;
     $(document).keypress(function(e) {
@@ -28,11 +28,6 @@ $(document).ready(function(){
             }
         }
     });
-    $(".dropdown-button").dropdown();
-    //NAVBAR responsivo
-    $(".button-collapse").sideNav();
-    //Carrousel inicial
-    $('.slider').slider();
     //buscar datos en base de datos
     $( ".busInicio" ).keypress(function() {
         $.get( "app/recuperarDatos.php", function( data ) {
@@ -40,18 +35,18 @@ $(document).ready(function(){
         });
     });
     var datos = {
-      "Kingdom Hearts": null,
-      "Mario Bros": null,
-      "Pokemon": null,
+        "Kingdom Hearts": null,
+        "Mario Bros": null,
+        "Pokemon": null,
     };
     //autocompletado
     $('input.autocomplete').autocomplete({
-      data: datos,
-      limit: 5, // The max amount of results that can be shown at once. Default: Infinity.
-      onAutocomplete: function(val) {
-        alert(val)
-      },
-      minLength: 3, // The minimum length of the input for the autocomplete to start. Default: 1.
+        data: datos,
+        limit: 5, // The max amount of results that can be shown at once. Default: Infinity.
+        onAutocomplete: function(val) {
+            alert(val)
+        },
+        minLength: 3, // The minimum length of the input for the autocomplete to start. Default: 1.
     });
 
     $('.perfil-navbar').sideNav({
@@ -62,25 +57,97 @@ $(document).ready(function(){
         onOpen: function(el) {  }, // A function to be called when sideNav is opened
         onClose: function(el) {  }, // A function to be called when sideNav is closed
     });
-    $.ajax({url: "app/vistas/infoInicio.php?nsw&init", success: function(result){
-        $("#nswIndex").html(result);
-        //$("#vendidoIndex").html(result);
-        //$("#salidaIndex").html(result);
-        }
-    });
-    $.ajax({url: "app/vistas/infoInicio.php?ps4&init", success: function(result){
-        $("#ps4Index").html(result);
-    }});
-    $.ajax({url: "app/vistas/infoInicio.php?xone&init", success: function(result){
-        $("#xboxIndex").html(result);
-    }});
-    $.ajax({url: "app/vistas/infoInicio.php?pc&init", success: function(result){
-        $("#pcIndex").html(result);
-    }});
+
+    $(".dropdown-button").dropdown();
+    //NAVBAR responsivo
+    $(".button-collapse").sideNav();
+    cargarPerfil();
 });//Document ready
 
 //##################################################################################
+// Logica inicio de sesion
+function iniciarSesion(){
+    $.ajax({url: "app/acceder/inicioSesion.php",
+        success: function(result){
+            $(".contenido").html(result);
+        }
+    });
+}
 
+function comprobarDatos(){
+    var userLogin = $("#usuarioLogin").val();
+    var pass = $("#passwordLogin").val();
+    if(true){
+        $.ajax({
+            type: "GET",
+            url: "app/acceder/comprobarCredenciales.php",
+            data: {
+                usr: userLogin,
+                pass: pass
+            },
+            success: function( data ) {
+                data = JSON.parse(data);
+                if (data.cod == 200) {
+                    Materialize.toast(data.msg, 3000, 'green rounded');
+                    home();
+                } else {
+                    Materialize.toast(data.msg, 3000, 'red rounded');
+                }
+            }
+        })
+    }else{
+        return false; //mark-2
+    }
+}
+function cerrarSesion(){
+    $.ajax({
+        type: "POST",
+        url: "app/acceder/comprobarCredenciales.php?exit",
+        success: function( response ) {
+            cargarPerfil();
+            Materialize.toast('¡Hasta pronto!', 3000, 'green rounded');
+            home();
+        }
+    })
+}
+
+
+//function que caarga todo el contenido de inicio
+function home(){
+    $.ajax({
+        url: 'app/vistas/inicio.php',
+        success: function(result){
+            breadcrumControl(true);
+            $(".contenido").html(result);
+            //Carrousel inicial
+            $('.slider').slider();
+
+            $.ajax({
+                url: "app/vistas/infoInicio.php?nsw&init",
+                success: function(result){
+                    $("#nswIndex").html(result);
+                    $("#vendidoIndex").html(result);
+                    $("#salidaIndex").html(result);
+                }
+            });
+            $.ajax({url: "app/vistas/infoInicio.php?ps4&init", success: function(result){
+                $("#ps4Index").html(result);
+            }});
+            $.ajax({url: "app/vistas/infoInicio.php?xone&init", success: function(result){
+                $("#xboxIndex").html(result);
+            }});
+            $.ajax({url: "app/vistas/infoInicio.php?pc&init", success: function(result){
+                $("#pcIndex").html(result);
+            }});
+        }
+    });
+    $.ajax({url: "app/vistas/carroPerfil.php",
+    success: function(result){
+        $(".carritoP").html(result)
+    }
+});
+}
+// -----------------------
 function vistaPtl(plataforma, filtro=4,pagina=1){
     $.ajax({url: "app/vistas/infoInicio.php?" + plataforma + "&filtro=" + filtro + "&pagina=" + pagina,
         success: function(result){
@@ -213,3 +280,15 @@ function pagarCesta(){
 
 //Collapse de los pasos del pago
 
+function cargarPerfil(){
+    $.ajax({url: "app/acceder/perfil.php",
+        success: function(result){
+            $(".navPerfil").html(result);
+            $.ajax({url: "app/vistas/carroPerfil.php",
+                success: function(result){
+                    $(".carritoP").html(result)
+                }
+            });
+        }
+    });
+}

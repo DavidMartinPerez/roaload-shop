@@ -11,7 +11,7 @@
 	<div class="container">
 		<p>Inicia sesion</p>
 		<p>para disfrutar del contenido ^^</p>
-		<a href="login" class="btn">Iniciar</a>
+		<a onclick="iniciarSesion()" class="btn">Iniciar</a>
 	</div>
 <!-- ./no logeado -->
 <?php } else{ ?>
@@ -38,9 +38,8 @@
 	?>
 	<li><div class="divider"></div></li>
 		<div class="carritoP">
-			<?php include 'app/vistas/carroPerfil.php' ?>
 		</div>
 	<li><div class="divider"></div></li>
 	<li><a class="btn" onclick="cargarCesta()">Ir a la cesta</a></li>
-	<li><a class="btn" href="login?exit">Cerrar Sesión</a></li>
+	<li><a class="btn" onclick="cerrarSesion()">Cerrar Sesión</a></li>
 <?php } ?>
