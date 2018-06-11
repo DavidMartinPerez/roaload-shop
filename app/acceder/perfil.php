@@ -4,7 +4,7 @@
     $base_dir = realpath(dirname(__FILE__)  . $ds . '..') . $ds; //Obtenemos el path actual
     require_once("{$base_dir}dao{$ds}acceso.php");
 
-    $objS = new Acceso();
+	$objS = new Acceso();
     if(!$objS->sessionActiva()){
 ?>
 	<div class="section"></div>

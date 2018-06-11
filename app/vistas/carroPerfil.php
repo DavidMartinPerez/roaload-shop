@@ -1,5 +1,8 @@
 <li><a class="subheader letra-semimediana">Cesta</a></li>
 <?php
+    if(!isset($_SESSION['carro'])){
+        session_start();
+    }
     if(isset($_SESSION['carro'])){
         $arrayC = unserialize($_SESSION['carro']);
 ?>
@@ -10,7 +13,7 @@
         ?>
                 <a><i class="material-icons">videogame_asset</i>
 
-                        <div class="" onclick="infoVersion(this.id, 'Info', 'Cesta')" id="<?=$arrayC[$i]["id"] ?>"><?=$arrayC[$i]["cantidad"] ?></div>
+                        <div class="" onclick="infoVersion(this.id, 'Info', 'Cesta', true)" id="<?=$arrayC[$i]["id"] ?>"><?=$arrayC[$i]["cantidad"] ?></div>
                         <!--"ID =".$arrayC[$i]["id"]."CANTIDAD=".$arrayC[$i]["cantidad"];-->
 
                 </a>
@@ -21,8 +24,7 @@
         </li>
 <br>
 <?php }else{ ?>
-
     <li style='padding-left: 20px'>No tienes productos</li>
-    <div style='padding-left: 20px'>Si no sabes como puedes sigue nuestra guía <span onclick="alert('ajax FAQ #COMPRAR')">aquí</span></div>
+    <div style='padding-left: 20px'>Si no sabes como puedes sigue nuestra guía <a onclick="alert('ajax FAQ #COMPRAR')">aquí</a></div>
 
 <?php } ?>

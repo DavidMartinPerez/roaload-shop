@@ -2,6 +2,7 @@
 
 $(document).ready(function(){
     home();
+    var tarjeta = false;
     // MODALES INICIALES
     if(!getCookie('usoAtajos')){
         console.log("Cookies: Muestro modal de atajos de teclado.")
@@ -72,6 +73,7 @@ function iniciarSesion(){
             $(".contenido").html(result);
         }
     });
+    breadcrumControl(true,null,"Iniciar Sesión")
 }
 
 function comprobarDatos(){
@@ -90,6 +92,7 @@ function comprobarDatos(){
                 if (data.cod == 200) {
                     Materialize.toast(data.msg, 3000, 'green rounded');
                     home();
+                    cargarPerfil();
                 } else {
                     Materialize.toast(data.msg, 3000, 'red rounded');
                 }
@@ -107,6 +110,7 @@ function cerrarSesion(){
             cargarPerfil();
             Materialize.toast('¡Hasta pronto!', 3000, 'green rounded');
             home();
+            cargarPerfil();
         }
     })
 }
@@ -141,11 +145,6 @@ function home(){
             }});
         }
     });
-    $.ajax({url: "app/vistas/carroPerfil.php",
-    success: function(result){
-        $(".carritoP").html(result)
-    }
-});
 }
 // -----------------------
 function vistaPtl(plataforma, filtro=4,pagina=1){
@@ -164,8 +163,8 @@ function limpiarBreadcrum(){ //Carga index en el contenedor y limpiar el breadcr
     //paginaPrincipal();
     breadcrumControl(true);
 }
-function infoVersion(idJ, nombre, plataforma){ //Carga la información de el producto y lo añade en el contenedor
-    breadcrumControl(null, null, nombre);
+function infoVersion(idJ, nombre, plataforma, reset=null){ //Carga la información de el producto y lo añade en el contenedor
+    breadcrumControl(reset, null, nombre);
     $.get("app/infoProducto.php", {
         id: idJ,
         ptl: plataforma
@@ -180,12 +179,12 @@ function paginaPrincipal(){
     }});
 }
 
-function añadirCarrito(idP){ //añade un producto o suma a uno existente a la cesta (guardada en sesion)
+function añadirCarrito(idP, precio){ //añade un producto o suma a uno existente a la cesta (guardada en sesion)
     $.get("app/carrito.php",{
-        idA: idP
+        idA: idP,
+        precio : precio
     },function(data){
         Materialize.toast('¡Añadido al carrito!', 3000, 'green rounded');
-        console.log(data);
         $(".carritoP").html(data);
     }
 )};
@@ -245,7 +244,11 @@ function cargarCesta(){
         url: "./app/vistas/cesta.php",
         method: "POST",
         success: function(result){
-            $(".contenido").html(result);
+            if(result == 1){
+                Materialize.toast('¡Aun no añadiste nada a tu cesta!', 3000, 'orange rounded');
+            }else{
+                $(".contenido").html(result);
+            }
         }
     });
 }
@@ -256,6 +259,7 @@ function cargarCesta(){
 
 // Redirecionamos al pago
 function pagarCesta(){
+    var tajeta = false;
     $.ajax({
         url: "./app/vistas/pago.php",
         method: "POST",
@@ -277,11 +281,81 @@ function pagarCesta(){
         }
     });
 }
+//Pago con tarjeta o bancaria
+function tranferencia(){
+    $(".tranferencia").show();
+    $(".pagoTarjeta").hide();
+    tarjeta = false;
+}
+
+function pagoTarjeta(){
+    $(".pagoTarjeta").show();
+    $(".tranferencia").hide();
+    tarjeta = true;
+}
+// ./Pago tarjeata
+function terminarPago(){
+    //Comprobar que todos los datos estan rellenados
+    var nombre = $('#nombre').val();
+    var apellidos = $('#nombre').val();
+    var dni = $('#dni').val();
+    var calle = $('#direccion').val();
+    var numeroCalle = $('#numero').val();
+    var ciudad = $('#ciudad').val();
+    var provincia = $('#provincia').val();
+    var cp = $('#cp').val();
+    var telefono = $('#telefono').val();
+    //TODO: Terminar esto:
+    var metodoCorreo = "correos";
+    if(0){
+        var metodoPagoTarjeta = true;
+        var numeroTarjeta = $('#numeroTarjeta').val();
+        var mesCumplido = $('#mes').val();
+        var anoCumplido = $('#anoTarjeta').val();
+        var nombreTitular = $('#nombreTarjeta').val();
+        var ccTarjeta = $('#ccTarjeta').val();
+        var datosPago = [numeroTarjeta,mesCumplido,anoCumplido,nombreTitular,ccTarjeta];
+    }else{
+        var metodoPagoTarjeta = false;
+        var datosPago = [null,null,null,null,null];
+    }
+    //Validar todos los datos
+    //TODO: Terminar validación
+    //Mandar los datos a ./app/trastienda/terminarPago.php
+    $.ajax({
+        method: "POST",
+        url: "./app/trastienda/terminarPago.php",
+        data: {
+            nombre : nombre,
+            apellidos: apellidos,
+            dni : dni,
+            calle : calle,
+            numeroCalle : numeroCalle,
+            ciudad : ciudad,
+            provincia : provincia,
+            cp : cp,
+            telefono : telefono,
+            metodoCorreo : metodoCorreo,
+            metodoPagoTarjeta : metodoPagoTarjeta,
+            datosPago : datosPago
+        },
+        success: function(result){
+            if(result){
+                //redireccionar al resumen del pedido.
+                //TODO: CREAR JSON PARA PEDIDOS PARA CONSTRUIR EL RESUMEN DEL PEDIDO:)
+            }else{
+                Materialize.toast(result, 3000, 'red rounded');
+            }
+        }
+    });
+    //Redireccionar a resumen del pedido con numero del pedido listo
+}
 
 //Collapse de los pasos del pago
 
 function cargarPerfil(){
-    $.ajax({url: "app/acceder/perfil.php",
+    $.ajax({
+        url: "app/acceder/perfil.php",
         success: function(result){
             $(".navPerfil").html(result);
             $.ajax({url: "app/vistas/carroPerfil.php",

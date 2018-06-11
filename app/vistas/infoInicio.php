@@ -125,7 +125,7 @@ if($reg == NULL){
                     <p class="center-align"><?=$row["nombreEdicion"]?>
                     <div class="card-action center-align">
                         <span class="pink-text"><?=$row["precio"]?> €</span>
-                        <a onclick="añadirCarrito(this.id)" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
+                        <a onclick="añadirCarrito(this.id, <?=$row["precio"]?>)" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
                     </div>
                 </div>
             </div>

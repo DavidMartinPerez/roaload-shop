@@ -6,7 +6,22 @@
                 <li>
                     <div class="collapsible-header datosPersonales letra-mediana"><i class="material-icons">account_circle</i>Datos Personales</div>
                     <div class="collapsible-body">
-                        <span>Nombre, dni, etc</span>
+                        <div class="row">
+                            <div class="input-field col s12 m6">
+                                <input  id="nombre" type="text" class="validate">
+                                <label for="nombre">Nombre</label>
+                            </div>
+                            <div class="input-field col s12 m6">
+                                <input id="apellidos" type="text" class="validate">
+                                <label for="apellidos">Apellidos</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12 m6">
+                                <input id="dni" type="text" class="validate">
+                                <label for="dni">DNI</label>
+                            </div>
+                        </div>
                     </div>
                 </li>
                 <li>
@@ -34,11 +49,11 @@
                         </div>
                         <div class="row">
                             <div class="input-field col s12 m6">
-                                <input  id="cp" type="text" class="validate">
+                                <input  id="cp" type="number" class="validate">
                                 <label for="cp">Codigo postal</label>
                             </div>
                             <div class="input-field col s12 m6">
-                                <input id="telefono" type="text" class="validate">
+                                <input id="telefono" type="number" class="validate">
                                 <label for="telefono">Teléfono</label>
                             </div>
                         </div>
@@ -65,7 +80,40 @@
                 <li>
                     <div class="collapsible-header letra-mediana"><i class="material-icons">credit_card</i>Método de pago</div>
                     <div class="collapsible-body">
-                        <span>Visa o Tranferencia bancaria.</span>
+                        <a class="btn teal darken-1" onclick="tranferencia()">Tranferencia Bancaria</a>
+                        <a class="btn teal darken-1" onclick="pagoTarjeta()">Tarjeta de Crédito/Débito</a><br>
+                        <div class="tranferencia" style="display: none">
+                            <p>Muy bien! Los pasos a seguir con una tranferencian serían:</p>
+                                <ul>
+                                    <li>Realizar una trasnferencia a esta cuenta: ES46 2022 0803 7408 5462 7500</li>
+                                    <li>Como concepto dejar tu DNI y ¡TÚ NÚMERO DE PEDIDO! el que te daremos al terminar la compra!</li>
+                                    <li>Este proceso tarda alrededor de 24/48h te informaremos cuando lo recibamos</li>
+                                </ul>
+                        </div>
+                        <div class="pagoTarjeta" style="display: none">
+                            <div class="row">
+                                <div class="input-field col s12 m6">
+                                    <input  id="numeroTarjeta" type="text" class="validate">
+                                    <label for="numeroTarjeta">Número de tarjeta</label>
+                                </div>
+                                <div class="input-field col s12 m6">
+                                    <input placeholder="Mes" id="mes" type="number" class="validate">
+                                    <label for="mes">Mes</label>
+                                    <input placeholder="Año" id="anoTarjeta" type="number" class="validate">
+                                    <label for="anoTarjeta">Año</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="input-field col s12 m6">
+                                    <input  id="nombreTarjeta" type="text" class="validate">
+                                    <label for="nombreTarjeta">Nombre del Titular</label>
+                                </div>
+                                <div class="input-field col s12 m6">
+                                    <input  id="ccTarjeta" type="number" class="validate">
+                                    <label for="ccTarjeta">Código de Control</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </li>
             </ul>
@@ -79,6 +127,7 @@
                     </div>
                 </li>
             </ul>
+            <a class="btn teal darken-1" onclick="terminarPago()">Terminar</a>
         </div>
     </div>
 </div>
