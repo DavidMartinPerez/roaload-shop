@@ -23,6 +23,7 @@
                     $row["apellido"],
                     $row["idUsuario"]
                 ]);
+                $_SESSION["idUser"] = $row["idUsuario"];
                 if ($row["admin"] == 0){
                     $_SESSION["rol"] = "usuario";
                 } else {

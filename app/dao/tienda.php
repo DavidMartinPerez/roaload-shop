@@ -43,10 +43,60 @@
             $resPedido = $bd->query($sqlPedidos);
             //TODO: COMPROBAR QUE LAS CONSULTAS SE REALIZARON BIEN
             if($resCrearPedido == $resPedido){
-                return $resCrearPedido;
+                return '{"estado": true, "msg":"¡Gracias por su compra!", "idLocalizable":"'.$idCalculada.'"}';
             } else{
-                return false;
+                return '{"estado": false, "msg":"¡Error en el pedido por favor intentelo más tarde!"}';
             }
-        }
+        }//
+
+        public function localizarProductos($localizador){
+            global $bd;
+
+            $sqlID = "SELECT `idPedido` FROM `pedido` WHERE `idLocalizador` = '$localizador'";
+
+            $id = $bd->query($sqlID);
+
+            $id = mysqli_fetch_assoc($id);
+            $id = $id["idPedido"];
+
+            $sqlProduct = "SELECT productoscomprados.idPedido, productoscomprados.cantidad , productoscomprados.precio,
+            videojuego.nombreJuego, edicion.nombreEdicion, plataforma.nombrePlataforma, versionjuego.precio
+            FROM `productoscomprados`,`versionjuego`, `plataforma`, `edicion`, `videojuego`
+            WHERE `idPedido` = $id AND versionjuego.idVersion = productoscomprados.idProducto
+            AND plataforma.idPlataforma = versionjuego.idPlataforma AND versionjuego.idEdicion = edicion.idEdicion
+            AND videojuego.idJuego = versionjuego.idJuego";
+
+            $reg = $bd->query($sqlProduct);
+
+            return $reg;
+
+        }//localizarDatos
+
+        public function localizarDatos($localizador){
+            global $bd;
+
+            $sqlDatosPedido = "SELECT * FROM `pedido` WHERE `idLocalizador` = '$localizador'";
+
+            $reg = $bd->query($sqlDatosPedido);
+
+            return $reg;
+
+        }//localizarProductos
+        public function pedidosPendientes($idUsr){
+            global $bd;
+            $sql = "SELECT * FROM `pedido` WHERE `idEstado` != 3 AND `idEstado` != 4 AND idUsuario = $idUsr";
+
+            $reg = $bd->query($sql);
+
+            return $reg;
+        }//pedidosPendientes
+        public function todosPedidos($idUser){
+            global $bd;
+            $sql = "SELECT * FROM `pedido` WHERE idUsuario = $idUser";
+
+            $reg = $bd->query($sql);
+
+            return $reg;
+        }//todosPedidos
     } //class RealizarPedido
 ?>

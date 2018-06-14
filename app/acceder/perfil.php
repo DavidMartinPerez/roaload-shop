@@ -30,9 +30,9 @@
 	<li><a class="letra-negrita"><i class="material-icons">mail</i>Mensajes</a></li>
 	<?php
 		if($_SESSION["rol"] == "admin"){?>
-			<li><a href="admin" ><i class="material-icons">brightness_low</i>Administrar Web</a></li>
+			<li><a class="btn" onclick="irAdministracion()" ><i class="material-icons">brightness_low</i>Administrar Web</a></li>
 		<?php } else  { ?>
-			<li><a class="letra-negrita"><i class="material-icons">loyalty</i>Pedidos pendientes</a></li>
+			<li><a class="letra-negrita" onclick="pedidosPendiente()"><i class="material-icons">loyalty</i>Pedidos pendientes</a></li>
 			<li><a class="letra-negrita"><i class="material-icons">history</i>Historial de pedidos</a></li>
 		<?php }
 	?>

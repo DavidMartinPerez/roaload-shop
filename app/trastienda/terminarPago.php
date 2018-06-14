@@ -94,10 +94,8 @@ $object = new Pedido;
 $estado = $object->realizarPedido($datosPedidos);
 
 // Segun el estado que nos llega borramos carrito y reenviamos a perfil/pedidos/pendientes
-if($estado){
+
     echo $estado;
-}else{
-    echo "¡Error en el pedido por favor intentelo de nuevo!";
-}
+
 
 ?>

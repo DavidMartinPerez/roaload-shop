@@ -297,7 +297,7 @@ function pagoTarjeta(){
 function terminarPago(){
     //Comprobar que todos los datos estan rellenados
     var nombre = $('#nombre').val();
-    var apellidos = $('#nombre').val();
+    var apellidos = $('#apellidos').val();
     var dni = $('#dni').val();
     var calle = $('#direccion').val();
     var numeroCalle = $('#numero').val();
@@ -307,7 +307,7 @@ function terminarPago(){
     var telefono = $('#telefono').val();
     //TODO: Terminar esto:
     var metodoCorreo = "correos";
-    if(0){
+    /*if(0){
         var metodoPagoTarjeta = true;
         var numeroTarjeta = $('#numeroTarjeta').val();
         var mesCumplido = $('#mes').val();
@@ -315,10 +315,10 @@ function terminarPago(){
         var nombreTitular = $('#nombreTarjeta').val();
         var ccTarjeta = $('#ccTarjeta').val();
         var datosPago = [numeroTarjeta,mesCumplido,anoCumplido,nombreTitular,ccTarjeta];
-    }else{
+    }else{*/
         var metodoPagoTarjeta = false;
         var datosPago = [null,null,null,null,null];
-    }
+    //}
     //Validar todos los datos
     //TODO: Terminar validación
     //Mandar los datos a ./app/trastienda/terminarPago.php
@@ -340,11 +340,24 @@ function terminarPago(){
             datosPago : datosPago
         },
         success: function(result){
-            if(result){
+            result = JSON.parse(result);
+            console.log(result);
+            if(result["estado"]){
+                var idL = result["idLocalizable"]
                 //redireccionar al resumen del pedido.
-                //TODO: CREAR JSON PARA PEDIDOS PARA CONSTRUIR EL RESUMEN DEL PEDIDO:)
+                Materialize.toast(result["msg"], 3000, 'green rounded');
+                $.ajax({
+                    type: "GET",
+                    url: "app/vistas/resumenPedido.php",
+                    data: {
+                        id: idL
+                    },
+                    success: function( data ) {
+                        $(".contenido").html(data);
+                    }
+                })
             }else{
-                Materialize.toast(result, 3000, 'red rounded');
+                Materialize.toast(result["msg"], 3000, 'red rounded');
             }
         }
     });
@@ -360,9 +373,37 @@ function cargarPerfil(){
             $(".navPerfil").html(result);
             $.ajax({url: "app/vistas/carroPerfil.php",
                 success: function(result){
-                    $(".carritoP").html(result)
+                    $(".carritoP").html(result);
                 }
             });
         }
     });
+}
+
+//PEDIDOS:
+
+function pedidosPendiente(){
+    $.ajax({
+        url: 'app/vistas/listaPedidos.php?pendiente',
+        method: 'POST',
+        data: {
+
+        },
+        success: function(data){
+            $(".contenido").html(data);
+        }
+    })
+}
+
+function verPedido(id){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/resumenPedido.php",
+        data: {
+            id: id
+        },
+        success: function( data ) {
+            $(".contenido").html(data);
+        }
+    })
 }

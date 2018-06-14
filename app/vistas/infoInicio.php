@@ -101,39 +101,38 @@ if($reg == NULL){
 
 ?>
 <div class="row">
-        <div class="">
-            <?php if($total != 1){ ?>
-                <div style='font-size:25px'>Total de productos encontrados: <?=$total?> </div>
-            <?php } ?>
-            <!-- Menú de filtro? -->
-        </div>
-        <div class="col l12">
-        <?php while($row = mysqli_fetch_assoc($reg)){
-            if($row["img"] == NULL){
-                $img = "00.png";
-            }else{
-                $img = $row["img"];
-            }
-            ?>
-            <div class="col m4 l3">
-                <div class="card carta-margin">
-                    <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
-                    <div class="card-image">
-                        <a id="<?=$row['idVersion']?>" onclick="infoVersion(this.id, '<?=$row["nombreJuego"]?>', '<?=$row["nombrePlataforma"]?>');"><img class="tamaño-img" src="assets/img/caratula/<?=$img ?>"></a>
-                    </div>
-                    <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
-                    <p class="center-align"><?=$row["nombreEdicion"]?>
-                    <div class="card-action center-align">
-                        <span class="pink-text"><?=$row["precio"]?> €</span>
-                        <a onclick="añadirCarrito(this.id, <?=$row["precio"]?>)" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
-                    </div>
-                </div>
-            </div>
-        <?php }
+    <div class="">
+        <?php if($total != 1){ ?>
+            <div style='font-size:25px'>Total de productos encontrados: <?=$total?> </div>
+        <?php } ?>
+        <!-- Menú de filtro? -->
+    </div>
+    <div class="col l12">
+    <?php while($row = mysqli_fetch_assoc($reg)){
+        if($row["img"] == NULL){
+            $img = "00.png";
+        }else{
+            $img = $row["img"];
         }
         ?>
+        <div class="col m4 l3">
+            <div class="card carta-margin">
+                <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
+                <div class="card-image">
+                    <a id="<?=$row['idVersion']?>" onclick="infoVersion(this.id, '<?=$row["nombreJuego"]?>', '<?=$row["nombrePlataforma"]?>');"><img class="tamaño-img" src="assets/img/caratula/<?=$img ?>"></a>
+                </div>
+                <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
+                <p class="center-align"><?=$row["nombreEdicion"]?>
+                <div class="card-action center-align">
+                    <span class="pink-text"><?=$row["precio"]?> €</span>
+                    <a onclick="añadirCarrito(this.id, <?=$row["precio"]?>)" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
+                </div>
+            </div>
+        </div>
+    <?php }
+    }
+    ?>
     </div>
-
 </div>
     <!-- PAGINACION -->
     <?php
