@@ -142,7 +142,7 @@ if($reg == NULL || $reg->num_rows == 0){
             $img = $row["img"];
         }
         ?>
-        <div class="col s10 offset-s1 m4 l3">
+        <div class="col s10 offset-s1 m6 l4 xl3">
             <div class="card carta-margin">
                 <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
                 <div class="card-image">

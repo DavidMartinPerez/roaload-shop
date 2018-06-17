@@ -1,0 +1,2449 @@
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+/// <reference path="../../game/game.enums.js" />
+
+// ReSharper disable StatementIsNotTerminated
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @externs_url http://closure-compiler.googlecode.com/svn/trunk/contrib/externs/maps/google_maps_api_v3_3.js
+// ==/ClosureCompiler==
+// @requires : game.enums.js
+/**
+ * @name MarkerClusterer for Google Maps v3
+ * @version version 1.0.1
+ * @author Luke Mahe
+ * @fileoverview
+ * The library creates and manages per-zoom-level clusters for large amounts of
+ * markers.
+ * <br/>
+ * This is a v3 implementation of the
+ * <a href="http://gmaps-utility-library-dev.googlecode.com/svn/tags/markerclusterer/"
+ * >v2 MarkerClusterer</a>.
+ */
+
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * A Marker Clusterer that clusters markers.
+ *
+ * @param {google.maps.Map} map The Google map to attach to.
+ * @param {Array.<google.maps.Marker>=} opt_markers Optional markers to add to
+ *   the cluster.
+ * @param {Object=} opt_options support the following options:
+ *     'gridSize': (number) The grid size of a cluster in pixels.
+ *     'maxZoom': (number) The maximum zoom level that a marker can be part of a
+ *                cluster.
+ *     'zoomOnClick': (boolean) Whether the default behaviour of clicking on a
+ *                    cluster is to zoom into it.
+ *     'averageCenter': (boolean) Wether the center of each cluster should be
+ *                      the average of all markers in the cluster.
+ *     'minimumClusterSize': (number) The minimum number of markers to be in a
+ *                           cluster before the markers are hidden and a count
+ *                           is shown.
+ *     'styles': (object) An object that has style properties:
+ *       'url': (string) The image url.
+ *       'height': (number) The image height.
+ *       'width': (number) The image width.
+ *       'anchor': (Array) The anchor position of the label text.
+ *       'textColor': (string) The text color.
+ *       'textSize': (number) The text size.
+ *       'backgroundPosition': (string) The position of the backgound x, y.
+ * @constructor
+ * @extends google.maps.OverlayView
+ */
+function MarkerClusterer(map, opt_markers, opt_options) {
+  // MarkerClusterer implements google.maps.OverlayView interface. We use the
+  // extend function to extend MarkerClusterer with google.maps.OverlayView
+  // because it might not always be available when the code is defined so we
+  // look for it at the last possible moment. If it doesn't exist now then
+  // there is no point going ahead :)
+  this.extend(MarkerClusterer, google.maps.OverlayView);
+  this.map_ = map;
+
+  /**
+   * @type {Array.<google.maps.Marker>}
+   * @private
+   */
+  this.markers_ = [];
+
+  /**
+   *  @type {Array.<Cluster>}
+   */
+  this.clusters_ = [];
+
+  this.sizes = [53, 56, 66, 78, 90];
+
+  /**
+   * @private
+   */
+  this.styles_ = [];
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.ready_ = false;
+
+  var options = opt_options || {};
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.gridSize_ = options['gridSize'] || 60;
+
+  /**
+   * @private
+   */
+  this.minClusterSize_ = options['minimumClusterSize'] || 2;
+
+  /**
+   * @type {?number}
+   * @private
+   */
+  this.maxZoom_ = options['maxZoom'] || null;
+
+  this.styles_ = options['styles'] || [];
+
+  /* Personalizaci�n fer */
+  this.stylesPickAvailable_ = [];
+  this.stylesShipAvailable_ = [];
+  this.stylesNotAvailable_ = [];
+  this.clickAndCollectMode = options['clickAndCollectMode'] || false;
+  /* Personalizaci�n fer */
+
+  /**
+   * @type {string}
+   * @private
+   */
+  this.imagePath_ = options['imagePath'] || this.MARKER_CLUSTER_IMAGE_PATH_;
+
+  /**
+   * @type {string}
+   * @private
+   */
+  this.imageExtension_ = options['imageExtension'] || this.MARKER_CLUSTER_IMAGE_EXTENSION_;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.zoomOnClick_ = true;
+
+  if (options['zoomOnClick'] != undefined) {
+    this.zoomOnClick_ = options['zoomOnClick'];
+  }
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.averageCenter_ = false;
+
+  if (options['averageCenter'] != undefined) {
+    this.averageCenter_ = options['averageCenter'];
+  }
+
+  this.setupStyles_();
+
+  this.setMap(map);
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.prevZoom_ = this.map_.getZoom();
+
+  // Add the map event listeners
+  var that = this;
+  google.maps.event.addListener(this.map_, 'zoom_changed', function () {
+    // Determines map type and prevent illegal zoom levels
+    var zoom = that.map_.getZoom();
+    var minZoom = that.map_.minZoom || 0;
+    var maxZoom = Math.min(that.map_.maxZoom || 100, that.map_.mapTypes[that.map_.getMapTypeId()].maxZoom);
+    zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
+
+    if (that.prevZoom_ != zoom) {
+      that.prevZoom_ = zoom;
+      that.resetViewport();
+    }
+  });
+
+  google.maps.event.addListener(this.map_, 'idle', function () {
+    that.redraw();
+  });
+
+  // Finally, add the markers
+  if (opt_markers && (opt_markers.length || Object.keys(opt_markers).length)) {
+    this.addMarkers(opt_markers, false);
+  }
+}
+
+/**
+ * The marker cluster image path.
+ *
+ * @type {string}
+ * @private
+ */
+MarkerClusterer.prototype.MARKER_CLUSTER_IMAGE_PATH_ = 'https://media.game.es/Img-statics/map/m';
+
+/**
+ * The marker cluster image path.
+ *
+ * @type {string}
+ * @private
+ */
+MarkerClusterer.prototype.MARKER_CLUSTER_IMAGE_EXTENSION_ = 'png';
+
+/**
+ * Extends a objects prototype by anothers.
+ *
+ * @param {Object} obj1 The object to be extended.
+ * @param {Object} obj2 The object to extend with.
+ * @return {Object} The new extended object.
+ * @ignore
+ */
+MarkerClusterer.prototype.extend = function (obj1, obj2) {
+  return function (object) {
+    for (var property in object.prototype) {
+      this.prototype[property] = object.prototype[property];
+    }
+    return this;
+  }.apply(obj1, [obj2]);
+};
+
+/**
+ * Implementaion of the interface method.
+ * @ignore
+ */
+MarkerClusterer.prototype.onAdd = function () {
+  this.setReady_(true);
+};
+
+/**
+ * Implementaion of the interface method.
+ * @ignore
+ */
+MarkerClusterer.prototype.draw = function () {};
+
+/**
+ * Sets up the styles object.
+ *
+ * @private
+ */
+MarkerClusterer.prototype.setupStyles_ = function () {
+  if (this.styles_.length) {
+    return;
+  }
+
+  for (var i = 0, size; size = this.sizes[i]; i++) {
+    this.styles_.push({
+      url: this.imagePath_ + (i + 1) + '.' + this.imageExtension_,
+      height: size,
+      width: size
+    });
+    /* Personalizaci�n fer */
+    if (this.clickAndCollectMode) {
+      this.stylesPickAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 'a.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+
+      this.stylesShipAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 's.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+
+      this.stylesNotAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 'n.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+    }
+    /* Fin Personalizaci�n fer */
+  }
+};
+
+/**
+ *  Fit the map to the bounds of the markers in the clusterer.
+ */
+MarkerClusterer.prototype.fitMapToMarkers = function () {
+  var markers = this.getMarkers();
+  var bounds = new google.maps.LatLngBounds();
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    bounds.extend(marker.getPosition());
+  }
+
+  this.map_.fitBounds(bounds);
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStyles = function (styles) {
+  this.styles_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStylesPickAvailable = function (styles) {
+  this.stylesPickAvailable_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStylesShipAvailable = function (styles) {
+  this.stylesShipAvailable_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setNotAvailable = function (styles) {
+  this.stylesNotAvailable_ = styles;
+};
+
+/**
+ *  Gets the styles.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStyles = function () {
+  return this.styles_;
+};
+
+/* Personalizaci�n fer */
+/**
+ *  Gets the styles pick available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesPickAvailable = function () {
+  return this.stylesPickAvailable_;
+};
+
+/**
+ *  Gets the styles ship available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesShipAvailable = function () {
+  return this.stylesShipAvailable_;
+};
+
+/**
+ *  Gets the styles not available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesNotAvailable = function () {
+  return this.stylesNotAvailable_;
+};
+
+/* Fin Personalizaci�n fer */
+
+/**
+ * Whether zoom on click is set.
+ *
+ * @return {boolean} True if zoomOnClick_ is set.
+ */
+MarkerClusterer.prototype.isZoomOnClick = function () {
+  return this.zoomOnClick_;
+};
+
+/**
+ * Whether average center is set.
+ *
+ * @return {boolean} True if averageCenter_ is set.
+ */
+MarkerClusterer.prototype.isAverageCenter = function () {
+  return this.averageCenter_;
+};
+
+/**
+ *  Returns the array of markers in the clusterer.
+ *
+ *  @return {Array.<google.maps.Marker>} The markers.
+ */
+MarkerClusterer.prototype.getMarkers = function () {
+  return this.markers_;
+};
+
+/**
+ *  Returns the number of markers in the clusterer
+ *
+ *  @return {Number} The number of markers.
+ */
+MarkerClusterer.prototype.getTotalMarkers = function () {
+  return this.markers_.length;
+};
+
+/**
+ *  Sets the max zoom for the clusterer.
+ *
+ *  @param {number} maxZoom The max zoom level.
+ */
+MarkerClusterer.prototype.setMaxZoom = function (maxZoom) {
+  this.maxZoom_ = maxZoom;
+};
+
+/**
+ *  Gets the max zoom for the clusterer.
+ *
+ *  @return {number} The max zoom level.
+ */
+MarkerClusterer.prototype.getMaxZoom = function () {
+  return this.maxZoom_;
+};
+
+/**
+ *  The function for calculating the cluster icon image.
+ *
+ *  @param {Array.<google.maps.Marker>} markers The markers in the clusterer.
+ *  @param {number} numStyles The number of styles available.
+ *  @return {Object} A object properties: 'text' (string) and 'index' (number).
+ *  @private
+ */
+MarkerClusterer.prototype.calculator_ = function (markers, numStyles) {
+  var index = 0;
+  var count = markers.length;
+  var dv = count;
+  while (dv !== 0) {
+    dv = parseInt(dv / 10, 10);
+    index++;
+  }
+
+  index = Math.min(index, numStyles);
+  return {
+    text: count,
+    index: index
+  };
+};
+
+/**
+ * Set the calculator function.
+ *
+ * @param {function(Array, number)} calculator The function to set as the
+ *     calculator. The function should return a object properties:
+ *     'text' (string) and 'index' (number).
+ *
+ */
+MarkerClusterer.prototype.setCalculator = function (calculator) {
+  this.calculator_ = calculator;
+};
+
+/**
+ * Get the calculator function.
+ *
+ * @return {function(Array, number)} the calculator function.
+ */
+MarkerClusterer.prototype.getCalculator = function () {
+  return this.calculator_;
+};
+
+/**
+ * Add an array of markers to the clusterer.
+ *
+ * @param {Array.<google.maps.Marker>} markers The markers to add.
+ * @param {boolean=} opt_nodraw Whether to redraw the clusters.
+ */
+MarkerClusterer.prototype.addMarkers = function (markers, opt_nodraw) {
+  if (markers.length) {
+    for (var i = 0, marker; marker = markers[i]; i++) {
+      this.pushMarkerTo_(marker);
+    }
+  } else if (Object.keys(markers).length) {
+    for (var marker in markers) {
+      this.pushMarkerTo_(markers[marker]);
+    }
+  }
+  if (!opt_nodraw) {
+    this.redraw();
+  }
+};
+
+/**
+ * Pushes a marker to the clusterer.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @private
+ */
+MarkerClusterer.prototype.pushMarkerTo_ = function (marker) {
+  marker.isAdded = false;
+  if (marker['draggable']) {
+    // If the marker is draggable add a listener so we update the clusters on
+    // the drag end.
+    var that = this;
+    google.maps.event.addListener(marker, 'dragend', function () {
+      marker.isAdded = false;
+      that.repaint();
+    });
+  }
+  this.markers_.push(marker);
+};
+
+/**
+ * Adds a marker to the clusterer and redraws if needed.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @param {boolean=} opt_nodraw Whether to redraw the clusters.
+ */
+MarkerClusterer.prototype.addMarker = function (marker, opt_nodraw) {
+  this.pushMarkerTo_(marker);
+  if (!opt_nodraw) {
+    this.redraw();
+  }
+};
+
+/**
+ * Removes a marker and returns true if removed, false if not
+ *
+ * @param {google.maps.Marker} marker The marker to remove
+ * @return {boolean} Whether the marker was removed or not
+ * @private
+ */
+MarkerClusterer.prototype.removeMarker_ = function (marker) {
+  var index = -1;
+  if (this.markers_.indexOf) {
+    index = this.markers_.indexOf(marker);
+  } else {
+    for (var i = 0, m; m = this.markers_[i]; i++) {
+      if (m == marker) {
+        index = i;
+        break;
+      }
+    }
+  }
+
+  if (index == -1) {
+    // Marker is not in our list of markers.
+    return false;
+  }
+
+  marker.setMap(null);
+
+  this.markers_.splice(index, 1);
+
+  return true;
+};
+
+/**
+ * Remove a marker from the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to remove.
+ * @param {boolean=} opt_nodraw Optional boolean to force no redraw.
+ * @return {boolean} True if the marker was removed.
+ */
+MarkerClusterer.prototype.removeMarker = function (marker, opt_nodraw) {
+  var removed = this.removeMarker_(marker);
+
+  if (!opt_nodraw && removed) {
+    this.resetViewport();
+    this.redraw();
+    return true;
+  } else {
+    return false;
+  }
+};
+
+/**
+ * Removes an array of markers from the cluster.
+ *
+ * @param {Array.<google.maps.Marker>} markers The markers to remove.
+ * @param {boolean=} opt_nodraw Optional boolean to force no redraw.
+ */
+MarkerClusterer.prototype.removeMarkers = function (markers, opt_nodraw) {
+  var removed = false;
+
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    var r = this.removeMarker_(marker);
+    removed = removed || r;
+  }
+
+  if (!opt_nodraw && removed) {
+    this.resetViewport();
+    this.redraw();
+    return true;
+  }
+};
+
+/**
+ * Sets the clusterer's ready state.
+ *
+ * @param {boolean} ready The state.
+ * @private
+ */
+MarkerClusterer.prototype.setReady_ = function (ready) {
+  if (!this.ready_) {
+    this.ready_ = ready;
+    this.createClusters_();
+  }
+};
+
+/**
+ * Returns the number of clusters in the clusterer.
+ *
+ * @return {number} The number of clusters.
+ */
+MarkerClusterer.prototype.getTotalClusters = function () {
+  return this.clusters_.length;
+};
+
+/**
+ * Returns the google map that the clusterer is associated with.
+ *
+ * @return {google.maps.Map} The map.
+ */
+MarkerClusterer.prototype.getMap = function () {
+  return this.map_;
+};
+
+/**
+ * Sets the google map that the clusterer is associated with.
+ *
+ * @param {google.maps.Map} map The map.
+ */
+MarkerClusterer.prototype.setMap = function (map) {
+  this.map_ = map;
+};
+
+/**
+ * Returns the size of the grid.
+ *
+ * @return {number} The grid size.
+ */
+MarkerClusterer.prototype.getGridSize = function () {
+  return this.gridSize_;
+};
+
+/**
+ * Sets the size of the grid.
+ *
+ * @param {number} size The grid size.
+ */
+MarkerClusterer.prototype.setGridSize = function (size) {
+  this.gridSize_ = size;
+};
+
+/**
+ * Returns the min cluster size.
+ *
+ * @return {number} The grid size.
+ */
+MarkerClusterer.prototype.getMinClusterSize = function () {
+  return this.minClusterSize_;
+};
+
+/**
+ * Sets the min cluster size.
+ *
+ * @param {number} size The grid size.
+ */
+MarkerClusterer.prototype.setMinClusterSize = function (size) {
+  this.minClusterSize_ = size;
+};
+
+/**
+ * Extends a bounds object by the grid size.
+ *
+ * @param {google.maps.LatLngBounds} bounds The bounds to extend.
+ * @return {google.maps.LatLngBounds} The extended bounds.
+ */
+MarkerClusterer.prototype.getExtendedBounds = function (bounds) {
+  var projection = this.getProjection();
+
+  // Turn the bounds into latlng.
+  var tr = new google.maps.LatLng(bounds.getNorthEast().lat(), bounds.getNorthEast().lng());
+  var bl = new google.maps.LatLng(bounds.getSouthWest().lat(), bounds.getSouthWest().lng());
+
+  // Convert the points to pixels and the extend out by the grid size.
+  var trPix = projection.fromLatLngToDivPixel(tr);
+  trPix.x += this.gridSize_;
+  trPix.y -= this.gridSize_;
+
+  var blPix = projection.fromLatLngToDivPixel(bl);
+  blPix.x -= this.gridSize_;
+  blPix.y += this.gridSize_;
+
+  // Convert the pixel points back to LatLng
+  var ne = projection.fromDivPixelToLatLng(trPix);
+  var sw = projection.fromDivPixelToLatLng(blPix);
+
+  // Extend the bounds to contain the new bounds.
+  bounds.extend(ne);
+  bounds.extend(sw);
+
+  return bounds;
+};
+
+/**
+ * Determins if a marker is contained in a bounds.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @param {google.maps.LatLngBounds} bounds The bounds to check against.
+ * @return {boolean} True if the marker is in the bounds.
+ * @private
+ */
+MarkerClusterer.prototype.isMarkerInBounds_ = function (marker, bounds) {
+  return bounds.contains(marker.getPosition());
+};
+
+/**
+ * Clears all clusters and markers from the clusterer.
+ */
+MarkerClusterer.prototype.clearMarkers = function () {
+  this.resetViewport(true);
+
+  // Set the markers a empty array.
+  this.markers_ = [];
+};
+
+/**
+ * Clears all existing clusters and recreates them.
+ * @param {boolean} opt_hide To also hide the marker.
+ */
+MarkerClusterer.prototype.resetViewport = function (opt_hide) {
+  // Remove all the clusters
+  for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
+    cluster.remove();
+  }
+
+  // Reset the markers to not be added and to be invisible.
+  for (var i = 0, marker; marker = this.markers_[i]; i++) {
+    marker.isAdded = false;
+    if (opt_hide) {
+      marker.setMap(null);
+    }
+  }
+
+  this.clusters_ = [];
+};
+
+/**
+ *
+ */
+MarkerClusterer.prototype.repaint = function () {
+  var oldClusters = this.clusters_.slice();
+  this.clusters_.length = 0;
+  this.resetViewport();
+  this.redraw();
+
+  // Remove the old clusters.
+  // Do it in a timeout so the other clusters have been drawn first.
+  window.setTimeout(function () {
+    for (var i = 0, cluster; cluster = oldClusters[i]; i++) {
+      cluster.remove();
+    }
+  }, 0);
+};
+
+/**
+ * Redraws the clusters.
+ */
+MarkerClusterer.prototype.redraw = function () {
+  this.createClusters_();
+};
+
+/**
+ * Calculates the distance between two latlng locations in km.
+ * @see http://www.movable-type.co.uk/scripts/latlong.html
+ *
+ * @param {google.maps.LatLng} p1 The first lat lng point.
+ * @param {google.maps.LatLng} p2 The second lat lng point.
+ * @return {number} The distance between the two points in km.
+ * @private
+*/
+MarkerClusterer.prototype.distanceBetweenPoints_ = function (p1, p2) {
+  if (!p1 || !p2) {
+    return 0;
+  }
+
+  var R = 6371; // Radius of the Earth in km
+  var dLat = (p2.lat() - p1.lat()) * Math.PI / 180;
+  var dLon = (p2.lng() - p1.lng()) * Math.PI / 180;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(p1.lat() * Math.PI / 180) * Math.cos(p2.lat() * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+  return d;
+};
+
+/**
+ * Add a marker to a cluster, or creates a new cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @private
+ */
+MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
+  var distance = 40000; // Some large number
+  var clusterToAddTo = null;
+  var pos = marker.getPosition();
+  for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
+    var center = cluster.getCenter();
+    if (center) {
+      var d = this.distanceBetweenPoints_(center, marker.getPosition());
+      if (d < distance) {
+        distance = d;
+        clusterToAddTo = cluster;
+      }
+    }
+  }
+
+  if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)) {
+    clusterToAddTo.addMarker(marker);
+  } else {
+    var cluster = new Cluster(this);
+    cluster.addMarker(marker);
+    this.clusters_.push(cluster);
+  }
+};
+
+/**
+ * Creates the clusters.
+ *
+ * @private
+ */
+MarkerClusterer.prototype.createClusters_ = function () {
+  if (!this.ready_) {
+    return;
+  }
+
+  // Get our current map view bounds.
+  // Create a new bounds object so we don't affect the map.
+  var mapBounds = new google.maps.LatLngBounds(this.map_.getBounds().getSouthWest(), this.map_.getBounds().getNorthEast());
+  var bounds = this.getExtendedBounds(mapBounds);
+
+  for (var i = 0, marker; marker = this.markers_[i]; i++) {
+    if (!marker.isAdded && this.isMarkerInBounds_(marker, bounds)) {
+      this.addToClosestCluster_(marker);
+    }
+  }
+  google.maps.event.trigger(this, "clusteringend", this);
+};
+
+/**
+ * A cluster that contains markers.
+ *
+ * @param {MarkerClusterer} markerClusterer The markerclusterer that this
+ *     cluster is associated with.
+ * @constructor
+ * @ignore
+ */
+function Cluster(markerClusterer) {
+  this.markerClusterer_ = markerClusterer;
+  this.map_ = markerClusterer.getMap();
+  this.gridSize_ = markerClusterer.getGridSize();
+  this.minClusterSize_ = markerClusterer.getMinClusterSize();
+  this.averageCenter_ = markerClusterer.isAverageCenter();
+  this.center_ = null;
+  this.markers_ = [];
+  this.bounds_ = null;
+  /*Personalizaci�n iconos click and collect */
+  this.isAvailable = false;
+  this.isAvailableForShip = false;
+  this.isNotAvailable = true;
+  /*Personalizaci�n iconos click and collect */
+
+  this.clusterIcon_ = new ClusterIcon(this, markerClusterer.getStyles(), markerClusterer.getStylesPickAvailable(), markerClusterer.getStylesShipAvailable(), markerClusterer.getStylesNotAvailable(), markerClusterer.getGridSize());
+}
+
+/**
+ * Determins if a marker is already added to the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @return {boolean} True if the marker is already added.
+ */
+Cluster.prototype.isMarkerAlreadyAdded = function (marker) {
+  if (this.markers_.indexOf) {
+    return this.markers_.indexOf(marker) != -1;
+  } else {
+    for (var i = 0, m; m = this.markers_[i]; i++) {
+      if (m == marker) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * Add a marker the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @return {boolean} True if the marker was added.
+ */
+Cluster.prototype.addMarker = function (marker) {
+  if (this.isMarkerAlreadyAdded(marker)) {
+    return false;
+  }
+
+  if (!this.center_) {
+    this.center_ = marker.getPosition();
+    this.calculateBounds_();
+  } else {
+    if (this.averageCenter_) {
+      var l = this.markers_.length + 1;
+      var lat = (this.center_.lat() * (l - 1) + marker.getPosition().lat()) / l;
+      var lng = (this.center_.lng() * (l - 1) + marker.getPosition().lng()) / l;
+      this.center_ = new google.maps.LatLng(lat, lng);
+      this.calculateBounds_();
+    }
+  }
+
+  marker.isAdded = true;
+  this.markers_.push(marker);
+
+  /* Personalizaci�n fer */
+  if (marker.data.Type) {
+    switch (marker.data.Type) {
+      case game.enums.storePickAndClickStatus.ready:
+        this.isAvailable = true;
+        break;
+      case game.enums.storePickAndClickStatus.ship:
+        this.isAvailableForShip = true;
+        break;
+    }
+  }
+  /* Fin Personalizaci�n fer */
+  var len = this.markers_.length;
+  if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
+    // Min cluster size not reached so show the marker.
+    marker.setMap(this.map_);
+  }
+
+  if (len == this.minClusterSize_) {
+    // Hide the markers that were showing.
+    for (var i = 0; i < len; i++) {
+      this.markers_[i].setMap(null);
+    }
+  }
+
+  if (len >= this.minClusterSize_) {
+    marker.setMap(null);
+  }
+
+  this.updateIcon();
+  return true;
+};
+
+/**
+ * Returns the marker clusterer that the cluster is associated with.
+ *
+ * @return {MarkerClusterer} The associated marker clusterer.
+ */
+Cluster.prototype.getMarkerClusterer = function () {
+  return this.markerClusterer_;
+};
+
+/**
+ * Returns the bounds of the cluster.
+ *
+ * @return {google.maps.LatLngBounds} the cluster bounds.
+ */
+Cluster.prototype.getBounds = function () {
+  var bounds = new google.maps.LatLngBounds(this.center_, this.center_);
+  var markers = this.getMarkers();
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    bounds.extend(marker.getPosition());
+  }
+  return bounds;
+};
+
+/**
+ * Removes the cluster
+ */
+Cluster.prototype.remove = function () {
+  this.clusterIcon_.remove();
+  this.markers_.length = 0;
+  delete this.markers_;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {number} The cluster center.
+ */
+Cluster.prototype.getSize = function () {
+  return this.markers_.length;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {Array.<google.maps.Marker>} The cluster center.
+ */
+Cluster.prototype.getMarkers = function () {
+  return this.markers_;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {google.maps.LatLng} The cluster center.
+ */
+Cluster.prototype.getCenter = function () {
+  return this.center_;
+};
+
+/**
+ * Calculated the extended bounds of the cluster with the grid.
+ *
+ * @private
+ */
+Cluster.prototype.calculateBounds_ = function () {
+  var bounds = new google.maps.LatLngBounds(this.center_, this.center_);
+  this.bounds_ = this.markerClusterer_.getExtendedBounds(bounds);
+};
+
+/**
+ * Determines if a marker lies in the clusters bounds.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @return {boolean} True if the marker lies in the bounds.
+ */
+Cluster.prototype.isMarkerInClusterBounds = function (marker) {
+  return this.bounds_.contains(marker.getPosition());
+};
+
+/**
+ * Returns the map that the cluster is associated with.
+ *
+ * @return {google.maps.Map} The map.
+ */
+Cluster.prototype.getMap = function () {
+  return this.map_;
+};
+
+/**
+ * Updates the cluster icon
+ */
+Cluster.prototype.updateIcon = function () {
+  var zoom = this.map_.getZoom();
+  var mz = this.markerClusterer_.getMaxZoom();
+
+  if (mz && zoom > mz) {
+    // The zoom is greater than our max zoom so show all the markers in cluster.
+    for (var i = 0, marker; marker = this.markers_[i]; i++) {
+      marker.setMap(this.map_);
+    }
+    return;
+  }
+
+  if (this.markers_.length < this.minClusterSize_) {
+    // Min cluster size not yet reached.
+    this.clusterIcon_.hide();
+    return;
+  }
+
+  var numStyles = this.markerClusterer_.getStyles().length;
+  var sums = this.markerClusterer_.getCalculator()(this.markers_, numStyles);
+  this.clusterIcon_.setCenter(this.center_);
+  this.clusterIcon_.setSums(sums);
+  this.clusterIcon_.show();
+};
+
+/**
+ * A cluster icon
+ *
+ * @param {Cluster} cluster The cluster to be associated with.
+ * @param {Object} styles An object that has style properties:
+ *     'url': (string) The image url.
+ *     'height': (number) The image height.
+ *     'width': (number) The image width.
+ *     'anchor': (Array) The anchor position of the label text.
+ *     'textColor': (string) The text color.
+ *     'textSize': (number) The text size.
+ *     'backgroundPosition: (string) The background postition x, y.
+ * @param {number=} opt_padding Optional padding to apply to the cluster icon.
+ * @constructor
+ * @extends google.maps.OverlayView
+ * @ignore
+ */
+function ClusterIcon(cluster, styles, stylesPickAvailable, stylesShipAvailable, stylesNotAvailable, opt_padding) {
+  cluster.getMarkerClusterer().extend(ClusterIcon, google.maps.OverlayView);
+
+  this.styles_ = styles;
+  this.stylesPickAvailable_ = stylesPickAvailable || null;
+  this.stylesShipAvailable_ = stylesShipAvailable || null;
+  this.stylesNotAvailable_ = stylesNotAvailable || null;
+  this.padding_ = opt_padding || null;
+  this.cluster_ = cluster;
+  this.clickAndCollectMode = cluster.markerClusterer_.clickAndCollectMode;
+  this.center_ = null;
+  this.map_ = cluster.getMap();
+  this.div_ = null;
+  this.sums_ = null;
+  this.visible_ = false;
+
+  this.setMap(this.map_);
+}
+
+/**
+ * Triggers the clusterclick event and zoom's if the option is set.
+ */
+ClusterIcon.prototype.triggerClusterClick = function () {
+  var markerClusterer = this.cluster_.getMarkerClusterer();
+
+  // Trigger the clusterclick event.
+  google.maps.event.trigger(markerClusterer, 'clusterclick', this.cluster_);
+
+  if (markerClusterer.isZoomOnClick()) {
+    // Zoom into the cluster.
+    this.map_.fitBounds(this.cluster_.getBounds());
+  }
+};
+
+/**
+ * Adding the cluster icon to the dom.
+ * @ignore
+ */
+ClusterIcon.prototype.onAdd = function () {
+  this.div_ = document.createElement('DIV');
+  if (this.visible_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.cssText = this.createCss(pos);
+    this.div_.innerHTML = this.sums_.text;
+  }
+
+  var panes = this.getPanes();
+  panes.overlayMouseTarget.appendChild(this.div_);
+
+  var that = this;
+  google.maps.event.addDomListener(this.div_, 'click', function () {
+    that.triggerClusterClick();
+  });
+};
+
+/**
+ * Returns the position to place the div dending on the latlng.
+ *
+ * @param {google.maps.LatLng} latlng The position in latlng.
+ * @return {google.maps.Point} The position in pixels.
+ * @private
+ */
+ClusterIcon.prototype.getPosFromLatLng_ = function (latlng) {
+  var pos = this.getProjection().fromLatLngToDivPixel(latlng);
+  pos.x -= parseInt(this.width_ / 2, 10);
+  pos.y -= parseInt(this.height_ / 2, 10);
+  return pos;
+};
+
+/**
+ * Draw the icon.
+ * @ignore
+ */
+ClusterIcon.prototype.draw = function () {
+  if (this.visible_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.top = pos.y + 'px';
+    this.div_.style.left = pos.x + 'px';
+  }
+};
+
+/**
+ * Hide the icon.
+ */
+ClusterIcon.prototype.hide = function () {
+  if (this.div_) {
+    this.div_.style.display = 'none';
+  }
+  this.visible_ = false;
+};
+
+/**
+ * Position and show the icon.
+ */
+ClusterIcon.prototype.show = function () {
+  if (this.div_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.cssText = this.createCss(pos);
+    this.div_.style.display = '';
+  }
+  this.visible_ = true;
+};
+
+/**
+ * Remove the icon from the map
+ */
+ClusterIcon.prototype.remove = function () {
+  this.setMap(null);
+};
+
+/**
+ * Implementation of the onRemove interface.
+ * @ignore
+ */
+ClusterIcon.prototype.onRemove = function () {
+  if (this.div_ && this.div_.parentNode) {
+    this.hide();
+    this.div_.parentNode.removeChild(this.div_);
+    this.div_ = null;
+  }
+};
+
+/**
+ * Set the sums of the icon.
+ *
+ * @param {Object} sums The sums containing:
+ *   'text': (string) The text to display in the icon.
+ *   'index': (number) The style index of the icon.
+ */
+ClusterIcon.prototype.setSums = function (sums) {
+  this.sums_ = sums;
+  this.text_ = sums.text;
+  this.index_ = sums.index;
+  if (this.div_) {
+    this.div_.innerHTML = sums.text;
+  }
+
+  this.useStyle();
+};
+
+/**
+ * Sets the icon to the the styles.
+ */
+ClusterIcon.prototype.useStyle = function () {
+  var index = Math.max(0, this.sums_.index - 1);
+  index = Math.min(this.styles_.length - 1, index);
+  /* Personalizaci�n fer */
+  var style;
+  if (!this.clickAndCollectMode) {
+    var style = this.styles_[index];
+  } else {
+    //Estilos en funci�n de cascada, si disponible verde, sino y ship amarillo, sino rojo
+    if (this.cluster_.isAvailable) {
+      var style = this.stylesPickAvailable_[index];
+    } else if (this.cluster_.isAvailableForShip) {
+      var style = this.stylesShipAvailable_[index];
+    } else {
+      var style = this.stylesNotAvailable_[index];
+    }
+  }
+  /* Fin Personalizaci�n fer */
+
+  this.url_ = style['url'];
+  this.height_ = style['height'];
+  this.width_ = style['width'];
+  this.textColor_ = style['textColor'];
+  this.anchor_ = style['anchor'];
+  this.textSize_ = style['textSize'];
+  this.backgroundPosition_ = style['backgroundPosition'];
+};
+
+/**
+ * Sets the center of the icon.
+ *
+ * @param {google.maps.LatLng} center The latlng to set as the center.
+ */
+ClusterIcon.prototype.setCenter = function (center) {
+  this.center_ = center;
+};
+
+/**
+ * Create the css text based on the position of the icon.
+ *
+ * @param {google.maps.Point} pos The position.
+ * @return {string} The css style text.
+ */
+ClusterIcon.prototype.createCss = function (pos) {
+  var style = [];
+  style.push('background-image:url(' + this.url_ + ');');
+  var backgroundPosition = this.backgroundPosition_ ? this.backgroundPosition_ : '0 0';
+  style.push('background-position:' + backgroundPosition + ';');
+
+  if (_typeof(this.anchor_) === 'object') {
+    if (typeof this.anchor_[0] === 'number' && this.anchor_[0] > 0 && this.anchor_[0] < this.height_) {
+      style.push('height:' + (this.height_ - this.anchor_[0]) + 'px; padding-top:' + this.anchor_[0] + 'px;');
+    } else {
+      style.push('height:' + this.height_ + 'px; line-height:' + this.height_ + 'px;');
+    }
+    if (typeof this.anchor_[1] === 'number' && this.anchor_[1] > 0 && this.anchor_[1] < this.width_) {
+      style.push('width:' + (this.width_ - this.anchor_[1]) + 'px; padding-left:' + this.anchor_[1] + 'px;');
+    } else {
+      style.push('width:' + this.width_ + 'px; text-align:center;');
+    }
+  } else {
+    style.push('height:' + this.height_ + 'px; line-height:' + this.height_ + 'px; width:' + this.width_ + 'px; text-align:center;');
+  }
+
+  var txtColor = this.textColor_ ? this.textColor_ : 'white';
+  var txtSize = this.textSize_ ? this.textSize_ : 11;
+
+  style.push('cursor:pointer; top:' + pos.y + 'px; left:' + pos.x + 'px; color:' + txtColor + '; position:absolute; font-size:' + txtSize + 'px; font-family:Arial,sans-serif; font-weight:bold');
+  return style.join('');
+};
+
+// Export Symbols for Closure
+// If you are not going to compile with closure then you can remove the
+// code below.
+window['MarkerClusterer'] = MarkerClusterer;
+MarkerClusterer.prototype['addMarker'] = MarkerClusterer.prototype.addMarker;
+MarkerClusterer.prototype['addMarkers'] = MarkerClusterer.prototype.addMarkers;
+MarkerClusterer.prototype['clearMarkers'] = MarkerClusterer.prototype.clearMarkers;
+MarkerClusterer.prototype['fitMapToMarkers'] = MarkerClusterer.prototype.fitMapToMarkers;
+MarkerClusterer.prototype['getCalculator'] = MarkerClusterer.prototype.getCalculator;
+MarkerClusterer.prototype['getGridSize'] = MarkerClusterer.prototype.getGridSize;
+MarkerClusterer.prototype['getExtendedBounds'] = MarkerClusterer.prototype.getExtendedBounds;
+MarkerClusterer.prototype['getMap'] = MarkerClusterer.prototype.getMap;
+MarkerClusterer.prototype['getMarkers'] = MarkerClusterer.prototype.getMarkers;
+MarkerClusterer.prototype['getMaxZoom'] = MarkerClusterer.prototype.getMaxZoom;
+MarkerClusterer.prototype['getStyles'] = MarkerClusterer.prototype.getStyles;
+MarkerClusterer.prototype['getTotalClusters'] = MarkerClusterer.prototype.getTotalClusters;
+MarkerClusterer.prototype['getTotalMarkers'] = MarkerClusterer.prototype.getTotalMarkers;
+MarkerClusterer.prototype['redraw'] = MarkerClusterer.prototype.redraw;
+MarkerClusterer.prototype['removeMarker'] = MarkerClusterer.prototype.removeMarker;
+MarkerClusterer.prototype['removeMarkers'] = MarkerClusterer.prototype.removeMarkers;
+MarkerClusterer.prototype['resetViewport'] = MarkerClusterer.prototype.resetViewport;
+MarkerClusterer.prototype['repaint'] = MarkerClusterer.prototype.repaint;
+MarkerClusterer.prototype['setCalculator'] = MarkerClusterer.prototype.setCalculator;
+MarkerClusterer.prototype['setGridSize'] = MarkerClusterer.prototype.setGridSize;
+MarkerClusterer.prototype['setMaxZoom'] = MarkerClusterer.prototype.setMaxZoom;
+MarkerClusterer.prototype['onAdd'] = MarkerClusterer.prototype.onAdd;
+MarkerClusterer.prototype['draw'] = MarkerClusterer.prototype.draw;
+
+Cluster.prototype['getCenter'] = Cluster.prototype.getCenter;
+Cluster.prototype['getSize'] = Cluster.prototype.getSize;
+Cluster.prototype['getMarkers'] = Cluster.prototype.getMarkers;
+
+ClusterIcon.prototype['onAdd'] = ClusterIcon.prototype.onAdd;
+ClusterIcon.prototype['draw'] = ClusterIcon.prototype.draw;
+ClusterIcon.prototype['onRemove'] = ClusterIcon.prototype.onRemove;
+
+Object.keys = Object.keys || function (o) {
+  var result = [];
+  for (var name in o) {
+    if (o.hasOwnProperty(name)) result.push(name);
+  }
+  return result;
+};
+// ReSharper restore StatementIsNotTerminated
+/* globals $, YT, Twitch */
+/// <reference path="game.utils.js" />
+
+/**
+ * @namespace game
+ */
+var game = game || {};
+
+game.video2 = function () {
+    var
+    //// CONTROLADOR PARA VIDEOS DE YOUTUBE
+    ytCtrl = function () {
+        var $deferred = $.Deferred(),
+            init = function init(options) {
+            var tag,
+                firstScriptTag,
+                onReady = function onReady() {
+                /*var player =*/new YT.Player(options.playerId, {
+                    height: '390',
+                    width: '640',
+                    videoId: options.videoId,
+                    playerVars: {
+                        modestbranding: 1,
+                        loop: 1,
+                        rel: 0,
+                        showinfo: 0,
+                        controls: 0
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': options.onStateChange
+                    }
+                });
+            };
+
+            if (typeof YT === 'undefined') {
+                tag = document.createElement('script');
+                firstScriptTag = document.getElementsByTagName('script')[0];
+
+                tag.src = "https://www.youtube.com/iframe_api";
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                window.onYouTubeIframeAPIReady = onReady;
+            } else {
+                onReady();
+            }
+
+            $('#' + options.playerId).data({ initializated: 'youtube' });
+        },
+            onPlayerReady = function onPlayerReady(event) {
+            $(event.target.getIframe()).data({ initializated: 'youtube' });
+            $deferred.resolve(event.target);
+        };
+
+        return {
+            stop: function stop(elementId) {
+                if ($('#' + elementId).data().initializated === 'youtube') {
+                    $deferred.done(function (player) {
+                        player.stopVideo();
+                    });
+                }
+            },
+            load: function load(options) {
+                if ($('#' + options.playerId).data().initializated !== 'youtube') {
+                    init(options);
+                } else {
+                    $deferred.done(function (player) {
+                        if (options.stopped) {
+                            player.cueVideoById(options.videoId);
+                        } else {
+                            player.loadVideoById(options.videoId);
+                        }
+                    });
+                }
+            }
+        };
+    }(),
+
+    //// CONTROLADOR PARA VIDEOS DE TWITCH
+    twCtrl = function () {
+        var $deferred = $.Deferred(),
+            init = function init(options) {
+            var tag,
+                firstScriptTag,
+                onReady = function onReady() {
+                var player = new Twitch.Player(options.playerId, {
+                    height: '390',
+                    width: '640',
+                    channel: options.isChannel ? options.videoId : undefined,
+                    video: !options.isChannel ? options.videoId : undefined
+                }),
+                    onPlayerReady = function onPlayerReady() {
+                    $(player._bridge._iframe).data({ initializated: 'twitch' });
+                    $deferred.resolve(player);
+                };
+
+                player.addEventListener('ready', onPlayerReady);
+            };
+            if (typeof Twitch === 'undefined') {
+                tag = document.createElement('script');
+                firstScriptTag = document.getElementsByTagName('script')[0];
+                tag.onload = onReady;
+                tag.src = "https://player.twitch.tv/js/embed/v1.js";
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            } else {
+                onReady();
+            }
+            $('#' + options.playerId).data({ initializated: 'twitch' });
+        };
+        return {
+            stop: function stop(elementId) {
+                if ($('#' + elementId).data().initializated === 'twitch') {
+                    $deferred.done(function (player) {
+                        if (!player.isPaused()) {
+                            player.pause();
+                        }
+                    });
+                }
+            },
+            load: function load(options) {
+                if ($('#' + options.playerId).data().initializated !== 'twitch') {
+                    init(options);
+                } else {
+                    $deferred.done(function (player) {
+                        if (options.isChannel) player.setChannel(options.videoId);else player.setVideo(options.videoId);
+                        if (options.stopped) {
+                            player.pause();
+                        } else {
+                            player.play();
+                        }
+                    });
+                }
+            }
+        };
+    }(),
+
+
+    //// CONTROLADOR PARA VIDEOS DE HTML5
+    h5Ctrl = function () {
+        var $deferred = $.Deferred(),
+            createSources = function createSources(videoId, formats, video) {
+            ///<param name="videoId" type="String"></param>
+            ///<param name="formats" type="Array"></param>
+            ///<param name="video" type="Element"></param>
+            var source,
+                attr,
+                oldSources = video.getElementsByTagName('source');
+
+            while (oldSources.length !== 0) {
+                oldSources.item(0).remove();
+            }
+
+            if (!formats) {
+                var videoIdArr = videoId.split('.'),
+                    format = videoIdArr.pop();
+                videoId = videoIdArr.join('.');
+                formats = [format];
+            }
+
+            /// <param name="formats" type="Array"></param>                                        
+            formats.forEach(function (format) {
+                source = document.createElement("source");
+                attr = document.createAttribute("src");
+                attr.value = videoId + format;
+                source.attributes.setNamedItem(attr);
+                attr = document.createAttribute("type");
+                attr.value = 'video/' + format.substring(1);
+                source.attributes.setNamedItem(attr);
+                video.appendChild(source);
+            });
+
+            $deferred.resolve(video);
+        },
+            init = function init(options) {
+            /// <param name="videoId" type="String"></param>                                        
+            var video = document.createElement("video"),
+                attr;
+
+            createSources(options.videoId, options.formats, video);
+            if (options.formats) {
+                delete options.formats;
+            }
+
+            if (options.background) {
+                attr = document.createAttribute("poster");
+                attr.value = options.background;
+                video.attributes.setNamedItem(attr);
+            }
+
+            for (var opt in options) {
+                attr = document.createAttribute(opt);
+
+                if (options.hasOwnProperty(opt) && options[opt]) {
+                    attr.value = options[opt];
+                }
+                video.attributes.setNamedItem(attr);
+            }
+
+            var element = document.getElementById(options.playerId);
+            element.parentElement.insertBefore(video, element);
+            video.className = element.className;
+            video.id = element.id;
+            element.remove();
+            element = video;
+            element.dataset.initializated = 'html5';
+        };
+        return {
+            stop: function stop(elementId) {
+                var element = document.getElementById(elementId);
+
+                if (element && element.dataset.initializated === 'html5') {
+                    $deferred.done(function (player) {
+                        if (!player.paused) {
+                            player.pause();
+                        }
+                    });
+                }
+            },
+            load: function load(options) {
+                var element = document.getElementById(options.playerId);
+
+                if (!element || element.dataset.initializated !== 'html5') {
+                    init(options);
+                } else {
+                    $deferred.done(function (player) {
+                        createSources(options.videoId, options.formats, player);
+                        if (options.stopped) {
+                            player.pause();
+                        } else {
+                            player.play();
+                        }
+                    });
+                }
+            }
+        };
+    }(),
+        getoptions = function getoptions(options, onStateChange) {
+        options = options.playerId ? options : { playerId: options };
+        if (options.playerId) {
+            var player = document.getElementById(options.playerId[0] === '#' ? options.playerId.substring(1) : options.playerId);
+
+            if (player) {
+                options.videoType = options.videoType || player.dataset.videoType.toLowerCase();
+                options.videoId = options.videoId || player.dataset.videoId;
+                options.videoOptions = options.videoOptions || (player.dataset.videoOptions ? JSON.parse(player.dataset.videoOptions) : {});
+                options.videoBackground = options.videoBackground || player.dataset.videoBackground;
+                options.stopped = options.stopped === undefined ? player.dataset.stopped || true : options.stopped;
+            }
+        }
+
+        options.onStateChange = typeof onStateChange === 'function' ? onStateChange : function () {};
+
+        return options;
+    },
+        videoTypes = { youtube: ytCtrl, twitch: twCtrl, html5: h5Ctrl };
+
+    /**
+    * @typedef {Object} Video2
+    * @property {Function} stop
+    */
+    return {
+        load: function load(options, onStateChange) {
+            ///<return type="Video2">
+            options = getoptions(options, onStateChange);
+
+            if (options.playerId) {
+                videoTypes[options.videoType].load(options);
+            }
+
+            return {
+                stop: function stop() {
+                    game.video2.stop(options);
+                }
+            };
+        },
+        stop: function stop(options) {
+            options = getoptions(options);
+
+            if (options.playerId) {
+                if (options.videoType === 'youtube') {
+                    ytCtrl.stop(options.playerId);
+                } else if (options.videoType === 'twitch') {
+                    twCtrl.stop(options.playerId);
+                }
+            }
+        }
+    };
+}();
+/* globals $, YT */
+
+/// <reference path="../external/jquery/jquery-1.11.2.js" />
+/// <reference path="../game/game.utils.js" />
+/// <reference path="../game/game.enums.js" />
+/// <reference path="../game/game.request.js" />
+/// <reference path="../game/game.login.js" />
+/// <reference path="../game/game.video2.js" />
+/**
+ * @namespace game
+ */
+var game = game || {};
+
+/**
+* Gestión de la ficha de producto
+* @class 
+* @constructor 
+* @requires jQuery.js
+* @requires game.properties.js
+* @requires game.storage.js
+* @requires game.utils.js
+* @requires game.request.js 
+* @requires game.enums.js
+* @requires game.cart.js
+* @requires game.login.js
+*/
+
+game.product = function () {
+  "use strict";
+
+  var
+  // Modulo de control comentarios                
+  comments = function () {
+    var
+    // CONSTANTS
+    MAX_CHAR_ALLOWED = 500,
+        // Máximo numero de caracteres del comentario (solo visualización, se valida en servidor)
+    COMMENT_CHAR_COUNTER_TEMPLATE = "{{length}} | {{max}} caracteres",
+
+
+    // VARIABLES
+    _basePath = game.utils.getBasePath(),
+        _descValoraciones = ['', 'Malo', 'Regular', 'Bueno', 'Muy Bueno', 'Excelente'],
+
+
+    // DOM ELEMENTS
+    _$stars = null,
+        _$starsContainer = null,
+        _$msgSendVoteError = null,
+        _$msgSendVoteOk = null,
+        _$txtComment = null,
+        _$commentsCharCounter = null,
+
+
+    // FUNCTIONS
+    // Muestra mensaje de envio comentario OK
+    _showVoteOkMessage = function _showVoteOkMessage() {
+      /* Se añade la variante del mensaje aqui valorando si el textarea no lleva texto para tocar lo mínimo */
+      var type = _$txtComment.val() ? "1" : "2";
+      _hideVoteMessages();
+      _$msgSendVoteOk.filter("#msgSendVoteOk-" + type).removeClass("hide");
+    },
+
+    // Muestra mensaje de envio comentario erroreo
+    _showVoteErrorMessage = function _showVoteErrorMessage() {
+      _hideVoteMessages();
+      _$msgSendVoteError.addClass("show");
+      _$msgSendVoteError.removeClass("hide");
+    },
+
+    // Oculta los mensajes de envio de comentarios
+    _hideVoteMessages = function _hideVoteMessages() {
+      _$msgSendVoteError.addClass("hide");
+      _$msgSendVoteOk.addClass("hide");
+      _$msgSendVoteError.removeClass("show");
+      _$msgSendVoteOk.removeClass("show");
+    },
+        _sendComment = function _sendComment(data, deferredOptions) {
+      var __RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+      return game.api.ajax({
+        url: "/product/VoteProduct",
+        type: "POST",
+        data: Object.assign({}, game.api.formData('voteDataModel', data), { __RequestVerificationToken: __RequestVerificationToken })
+      }, deferredOptions);
+    },
+        _onSendVoteCommentDone = function _onSendVoteCommentDone(response) {
+      var $self = this;
+      $(".cm-txt span", $self).text(++$self.data().currentVotes);
+    },
+        _sendVoteCommnet = function _sendVoteCommnet(data, deferredOptions) {
+      var __RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val();
+      return game.api.ajax({
+        url: "/product/VoteComment",
+        type: "POST",
+        data: Object.assign({}, game.api.formData('voteCommentDataModel', data), { __RequestVerificationToken: __RequestVerificationToken })
+      }, deferredOptions);
+    },
+        _init = function _init() {
+      // BIND DOM EVENTS
+      _$stars = $('#valoracion form .ig-f-star');
+      _$starsContainer = _$stars.parent();
+      _$msgSendVoteError = $("#msgSendVoteError");
+      _$msgSendVoteOk = $("[id^='msgSendVoteOk-']");
+      _$txtComment = $("#txtComment");
+      _$commentsCharCounter = $('#commentsCharCounter');
+
+      // EVENTS
+      // Establece un máximo de caracteres para los comentarios
+      _$txtComment.keyup(function () {
+        var length = this.value.length;
+
+        if (length > MAX_CHAR_ALLOWED) {
+
+          this.value = this.value.substr(0, MAX_CHAR_ALLOWED);
+          length = MAX_CHAR_ALLOWED;
+        }
+
+        _$commentsCharCounter.html(COMMENT_CHAR_COUNTER_TEMPLATE.fastformat({ length: length, max: MAX_CHAR_ALLOWED }));
+      }), _$stars.hover(function () {
+        var $self = $(this),
+            $parent = _$starsContainer,
+            stars = $self.index() + 1;
+
+        $parent.removeClass('points-0 points-1 points-2 points-3 points-4 points-5');
+        $parent.addClass('points-' + stars);
+        $('.cm-txt', $parent).text(_descValoraciones[stars].toUpperCase());
+      }, function () {
+        var $parent = _$starsContainer;
+
+        $parent.removeClass('points-0 points-1 points-2 points-3 points-4 points-5');
+        $parent.addClass('points-' + $parent.data('stars'));
+        $('.cm-txt', $parent).text(_descValoraciones[$parent.data('stars')].toUpperCase());
+      }).click(function () {
+        var $self = $(this),
+            stars = $self.index() + 1;
+
+        _$starsContainer.data('stars', stars);
+      });
+
+      $('.link.comments-media-footer').on('click', function () {
+        var $self = $(this),
+            data = $self.data();
+
+        _sendVoteCommnet(data, {
+          done: _onSendVoteCommentDone.bind($self),
+          fail: {
+            notAuthenticated: function notAuthenticated() {
+              game.login.showLogin();
+            },
+            error: null
+          }
+        });
+
+        return false;
+      });
+
+      $("#btnAddComment").on("click", function () {
+        var $this = $(this),
+            stars = _$starsContainer.data().stars,
+            sku = $this.data().sku,
+            comment = _$txtComment.val();
+
+        _hideVoteMessages();
+        if (stars > 0) {
+          _sendComment({ Comment: comment, Rating: stars, Sku: sku, ErrorResponses: 0 }, {
+            done: function done(response) {
+              var $self = this;
+              _showVoteOkMessage();
+              _$txtComment.val('');
+            },
+            fail: {
+              notAuthenticated: function notAuthenticated() {
+                game.login.showLogin();
+              },
+              error: _showVoteErrorMessage
+            }
+          });
+        } else {
+          game.ui.alerts.add("Debes seleccionar una puntuación para añadir un comentario.", { position: "right" });
+        }
+      });
+    };
+
+    return {
+      sendComment: _sendComment,
+      sendVoteCommnet: _sendVoteCommnet,
+      init: _init
+    };
+  }(),
+
+
+  // Módulo de control de animación de las anclas
+  anchors = function () {
+    var _init = function _init() {
+      var $root = $("html, body");
+
+      $(".anchorbtn, #anchorTopBtn").click(function () {
+        var href = this.href,
+            $href = $(href);
+        $root.animate({
+          scrollTop: $href.offset().top
+        }, 500, function () {
+          window.location.hash = href;
+        });
+
+        return false;
+      });
+    };
+
+    return {
+      init: _init
+    };
+  }(),
+
+
+  // Módulo de control de elementos semicollapsables (TOO BIG)
+  tooBigElements = function () {
+    var // VARIABLES
+    _$tooBigElements = null,
+
+
+    // función sum, toma los elementos de un array y los suma
+    _sum = function _sum(array) {
+      var result = 0;
+      for (var i = 0; i < array.length; i++) {
+        result += array[i];
+      }
+      return result;
+    },
+        _initTooBigElements = function _initTooBigElements($buttons) {
+      var mapOuterHeight = function mapOuterHeight() {
+        return $(this).outerHeight(true);
+      };
+
+      $buttons.children('.ig-f-less-light').removeClass('hide').addClass('hide');
+      $buttons.children('.ig-f-plus-light').removeClass('hide');
+
+      for (var i = 0, k = $buttons.length; i < k; i++) {
+        var $currentBtn = $($buttons[i]),
+            $current = $currentBtn.parent(),
+            $target = $current.children($current.attr("data-jstarget")),
+            maxHeight = $current.attr("data-jsmaxheight");
+
+        // En maxHeight puede venir un número o un número seguido por un *
+        // En el primer caso es el número de pixeles que se usa como para establecer el alto máximo
+        // En el segundo caso es el número de elementos que se quiere mostrar, en este caso se recorre el número de elementos obteniendo el alto de los elementos (con margenes incluidos) para obtener el alto máximo.
+        // Si maxHeight no es un número estamos en el segundo caso y hay que calcular el alto
+        if (isNaN(maxHeight)) {
+          // obtenemos el número de elementos que se quieren mostrar
+          var numberOfElements = maxHeight.match(/^(\d*)\*$/)[1],
+
+          // obtenemos los elementos que se quieren mostrar
+          $elements = $target.children().slice(0, numberOfElements),
+
+          // obtenemos las alturas de los elementos que se quieren mostrar, incluyendo el margen externo.
+          heights = $($elements).map(mapOuterHeight);
+          // El alto máximo es igual a la suma de las alturas de los elementos que se quieren mostrar
+          maxHeight = _sum(heights);
+        }
+
+        $current.addClass("too-big").css({ "max-height": maxHeight + "px" });
+
+        if ($target.height() <= maxHeight) {
+          $currentBtn.attr({ style: 'display:none!important' });
+          $current.addClass("show-all");
+        } else {
+          $currentBtn.removeAttr('style');
+          $current.removeClass("show-all");
+        }
+      }
+    },
+        _init = function _init() {
+      // BIND DOM EVENTS
+      _$tooBigElements = $("[data-jsaction='too-big']");
+
+      _initTooBigElements(_$tooBigElements);
+
+      // EVENTS
+      $(document).on("click.Game.TooBig", "[data-jsaction='too-big']", function (e) {
+        var $currentBtn = $(e.currentTarget),
+            $current = $currentBtn.parent();
+
+        $current.toggleClass("show-all");
+      });
+    };
+
+    return {
+      init: _init,
+      initTooBigElements: _initTooBigElements
+    };
+  }(),
+
+
+  // Módulo de control de elementos con carrusel (CAROUSEL)
+  // TODO: Extender a eventos Touch
+  carouselElements = function () {
+    var _$screenshotsCarousel = null,
+        _$screenshotsTogglesSize = new game.ui.Control('.do-togglefullscreen'),
+
+
+    /*
+     * Cambia el src de los screenshots
+     */
+    _getScreenshotSrc = function _getScreenshotSrc(e) {
+      var $item = $(e.currentTarget).find(".active").find("img[data-src-screenshot]");
+
+      // No es necesario actualizar al hacer resize porque ya se habrá descargado una vez
+      if (!$item.hasClass("not-loaded")) return;
+      $item.attr("src", $item.attr("data-src-screenshot")).on("load", function () {
+        $item.removeClass("not-loaded");
+      });
+    },
+        _init = function _init() {
+      // BIND DOM elements
+      _$screenshotsCarousel = $("#product-carousel-screenshot");
+
+      // EVENTS
+
+      // Evento lanzado al terminar el carousel de bootstrap
+      _$screenshotsCarousel.on("slid.bs.carousel", function (evt) {
+        _getScreenshotSrc(evt);
+        _$screenshotsCarousel.carousel('cycle');
+        video.stop();
+      });
+
+      if (game.responsive.isResponsiveModeBoolean) {
+        _$screenshotsCarousel.carousel('pause');
+      }
+
+      $(document).on('changeToDesk', function () {
+        _$screenshotsCarousel.carousel('cycle');
+      });
+
+      $(document).on('click', _$screenshotsTogglesSize.selector, function (event) {
+        event.stopPropagation();
+        _$screenshotsCarousel.toggleClass('is-fullscreen');
+        $(window).trigger('resize');
+        return false;
+      });
+    };
+
+    return {
+      init: _init,
+      pause: function pause() {
+        _$screenshotsCarousel.carousel('pause');
+      },
+      cycle: function cycle() {
+        _$screenshotsCarousel.carousel('cycle');
+      }
+    };
+  }(),
+      video = function () {
+    /// <var name="video" type="Video2">
+    var video,
+        onPlayerStateChange = function onPlayerStateChange(event) {
+      event.data === YT.PlayerState.PLAYING ? carouselElements.pause() : carouselElements.cycle();
+    },
+        VideoTag = function () {
+
+      function VideoTag(node, supportedFormats, classes) {
+        this.node = node;
+        this.format = supportedFormats.find(function (format) {
+          return this.node.src.toLowerCase().endsWith(format);
+        }.bind(this));
+        this.classes = classes;
+        this.toggleSoundButton = this.node.parentNode.querySelector("." + classes.toggleSound);
+
+        if (this.node) {
+          this.carousel = {
+            node: $(node).closest('.carousel')[0],
+            pause: function pause() {
+              $(this.node).carousel('pause');
+            },
+            cycle: function cycle() {
+              $(this.node).carousel('cycle');
+            }
+          };
+          this.bindEvents();
+          this.updateClassList();
+          this.prop = this.setImageProp(this.setHeight.bind(this)); // Pasará a ser un 'number' al cargar la imagen
+        }
+      }
+
+      VideoTag.prototype.bindEvents = function () {
+
+        this.node.parentNode.addEventListener('click', function (event) {
+          if (this.node.paused) this.play();else this.pause();
+          this.updateClassList();
+        }.bind(this), false);
+
+        this.toggleSoundButton.addEventListener('click', function (event) {
+          event.stopPropagation();
+          this.toggleSound();
+          this.updateClassList();
+          return false;
+        }.bind(this), false);
+
+        $(this.carousel.node).on('slide.bs.carousel', function (event) {
+          if (!this.node.paused) this.pause();
+          this.updateClassList();
+        }.bind(this));
+
+        window.addEventListener('resize', function () {
+          game.utils.customRequest(200, this.setHeight.bind(this));
+        }.bind(this));
+      };
+
+      VideoTag.prototype.pause = function () {
+        this.node.pause();
+        this.carousel.cycle();
+      };
+
+      VideoTag.prototype.play = function () {
+        if (!this.node.canPlayType("video/" + this.format)) return game.ui.alerts.add("Tu navegador no soporta la reproducci\xF3n de video en formato " + this.format.toUpperCase() + ".", 'warning');
+        this.node.play();
+        this.carousel.pause();
+      };
+
+      VideoTag.prototype.setHeight = function () {
+        if (this.prop && this.prop > 0) this.node.style.height = this.prop * this.carousel.node.offsetWidth + "px";
+      };
+
+      VideoTag.prototype.setImageProp = function (onload) {
+        var item = void 0,
+            image = void 0;
+        item = this.carousel.node.querySelector('.item-image');
+        if (item) {
+          image = new Image();
+          image.onload = function () {
+            var prop = image.height / image.width;
+            if (prop > 0) {
+              this.prop = prop;
+              if (typeof onload === 'function') onload();
+            }
+          }.bind(this);
+          image.src = item.querySelector('img').src;
+        }
+        return false;
+      };
+
+      VideoTag.prototype.toggleSound = function (force) {
+        this.node.muted = !this.node.muted;
+      };
+
+      VideoTag.prototype.toggleSFullScreen = function (force) {
+        this.node.muted = !this.node.muted;
+      };
+
+      VideoTag.prototype.updateClassList = function () {
+        this.node.parentNode.classList.toggle(this.classes.isMuted, this.node.muted);
+        this.node.parentNode.classList.toggle(this.classes.isPaused, this.node.paused);
+      };
+
+      return VideoTag;
+    }();
+
+    return {
+      init: function init() {
+        if (document.getElementById('player')) {
+          video = game.video2.load('player', onPlayerStateChange);
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('.carousel video'), function (node, index, array) {
+          var video = new VideoTag(node, ['mp4', 'ogg'], {
+            carousel: 'carousel',
+            toggleSound: 'do-togglesound',
+            isMuted: 'is-muted',
+            isPaused: 'is-paused'
+          });
+        });
+      },
+      stop: function stop() {
+        if (video) video.stop();
+      }
+    };
+  }(),
+
+
+  // Módulo de control de la zona de extensión de venta
+  extensionDeVenta = function () {
+    var _$divPrice = null,
+        _$buttonPrice = null,
+        _$buyInfo = null,
+        _$items = null,
+        _$completePurchaseItems = null,
+        _buttonPriceData = null,
+        calculateCompletePurchase = function calculateCompletePurchase() {
+      var $self = $(this),
+          $parent = $self.parent(),
+          price = this.dataset.price,
+          total = _$divPrice[0].dataset.price,
+          totalFinal = _$buyInfo.length ? _$buyInfo[0].dataset.price : 0,
+          $item = _$items.eq($parent.index()),
+          skuList = _buttonPriceData !== null ? _buttonPriceData('sku') : null;
+
+      if ($self[0].checked) {
+        total = Math.sumPrices(+total, +price);
+        totalFinal = Math.sumPrices(+totalFinal, +price);
+        $item.addClass('active');
+        if (skuList) skuList += ',' + $self.data('sku');
+      } else {
+        total = Math.sumPrices(+total, -price);
+        totalFinal = Math.sumPrices(+totalFinal, -price);
+        $item.removeClass('active');
+        if (skuList) skuList = skuList.replace(',' + $self.data('sku'), '');
+      }
+
+      if (_$completePurchaseItems.filter(':checked').length === _$completePurchaseItems.length) {
+        $item.parent().removeClass('enough-selected').removeClass('all-selected').addClass('all-selected');
+      } else if (_$completePurchaseItems.filter(':checked').length >= _$completePurchaseItems.length - 1) {
+        $item.parent().removeClass('enough-selected').removeClass('all-selected').addClass('enough-selected');
+      } else {
+        $item.parent().removeClass('enough-selected').removeClass('all-selected');
+      }
+
+      _$items.filter('.active');
+
+      if (skuList) _buttonPriceData('sku', skuList);
+
+      _$divPrice[0].dataset.price = total;
+      if (_$buyInfo.length) _$buyInfo[0].dataset.price = totalFinal;
+
+      $('span', _$buyInfo).text('Precio final: ' + Math.trunc(totalFinal) + '\'' + totalFinal.getCents());
+
+      var parteEntera = Math.trunc(total);
+      $('.int', _$divPrice).text(parteEntera);
+      $('.decimal', _$divPrice).text('\'' + total.getCents());
+
+      _$divPrice.removeClass('buy-mini-m buy-mini-l buy-mini-xl buy-mini-xxl').addClass(parteEntera < 1000 ? "buy-mini-" + "xxl".substring(parteEntera.toString().length - 1) : "buy-mini-m");
+    },
+        _init = function _init() {
+      _$divPrice = $('.product-related-pack-generator .buy-mini-m, .product-related-pack-generator .buy-mini-l,.product-related-pack-generator .buy-mini-xl, .product-related-pack-generator .buy-mini-xxl');
+      _$buttonPrice = $('button, a', _$divPrice);
+      _$items = $('.product-related-pack-generator .grid-fluid .item');
+      _$completePurchaseItems = $('.product-related-pack-generator input:not(:disabled)').click(calculateCompletePurchase);
+      _$buyInfo = $('.buy--info', _$divPrice);
+      _buttonPriceData = function _buttonPriceData(item, value) {
+        var buttonPrice = _$buttonPrice[0];
+        if (buttonPrice) {
+          if (buttonPrice.dataset.sku === 'undefined') {
+            var h = buttonPrice.href.split('/');
+            if (typeof value === 'undefined') return h[h.length - 1];
+            h[h.length - 1] = value;
+            buttonPrice.href = h.join('/');
+          } else {
+            if (typeof value === 'undefined') return buttonPrice.dataset[item];
+            buttonPrice.dataset[item] = value;
+          }
+        }
+      };
+
+      _$items.filter('.active, .active + .item');
+      _$completePurchaseItems.filter(':checked').each(calculateCompletePurchase);
+    };
+
+    return {
+      init: _init
+    };
+  }(),
+
+
+  // Módulo de control de la zona de reservas
+  multiReserva = function () {
+    var updateModalData = function updateModalData(data, modal) {
+      modal.dataset.sku = data.sku;
+      modal.dataset.preorderid = data.preorderid;
+    },
+        updateButtonsData = function updateButtonsData(data, buttonsQuerySelector) {
+      Array.prototype.forEach.call(document.querySelectorAll(buttonsQuerySelector), function (node, index, array) {
+        node.dataset.sku = data.sku || node.dataset.sku;
+        node.dataset.preorderid = data.preorderid || node.dataset.preorderid;
+      });
+    },
+        updatePrice = function updatePrice(data, modal) {
+      var price = parseFloat(data.price),
+          integer = Math.floor(price),
+          decimal = "'" + (Math.floor((price - integer) * 100) + '00').substring(0, 2);
+      modal.querySelector('.buy--price .int').innerHTML = integer;
+      modal.querySelector('.buy--price .decimal').innerHTML = decimal;
+    },
+        bindEvents = function bindEvents(modalQuerySelector, buttonsQuerySelector, inputQuerySelector) {
+
+      var modal = document.querySelector(modalQuerySelector),
+          buttons = document.querySelectorAll(buttonsQuerySelector),
+          radios = document.querySelectorAll(inputQuerySelector);
+
+      // Al aparecer una nueva ventana en el mapa se actualiza el campo dataset de la reserva
+      $(modal).on('show.bs.modal', function (event) {
+        updateButtonsData(event.currentTarget.dataset, buttonsQuerySelector);
+      });
+      $(modal).on('infoWindowOpen', function (event) {
+        updateButtonsData(event.currentTarget.dataset, buttonsQuerySelector);
+      });
+
+      // Al cambiar la selección de multireserva se actualiza el campo dataset de la reserva
+      Array.prototype.forEach.call(radios, function (node, index, array) {
+        node.addEventListener('click', function (event) {
+          updateButtonsData(event.currentTarget.dataset, buttonsQuerySelector);
+          updateModalData(event.currentTarget.dataset, modal);
+          updatePrice(event.currentTarget.dataset, modal);
+        });
+      });
+
+      Array.prototype.forEach.call(buttons, function (node, index, array) {
+        $(node).on('addItemsDone', function () {
+          $(modal).modal('hide');
+        });
+      });
+    },
+        _init = function _init() {
+      // Relativo a multireserva
+      bindEvents('#modal-multi-reserves', '#modal-multi-reserves button.buy-button', '#modal-multi-reserves [name=reserve]');
+      bindEvents('#shoppreorders-modal', '#shoppreorders-modal .buy-button', '#shoppreorders-modal [name=preordershop-reserve]');
+    };
+
+    return {
+      init: _init
+    };
+  }(),
+
+
+  // Módulo de control de las puntuaciones de producto
+  animacionPuntuacion = function () {
+    var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame,
+        $p = null,
+        ms = [],
+        ns = [],
+        ua = window.navigator.userAgent,
+        msie = /(msie|trident(?=\/))\/?\s*(\d+)/i.test(ua),
+        loop = function loop() {
+      if (msie) {
+        $p = $(".pie");
+      }
+      $p.each(function (index, p) {
+        var m, n;
+        if (ns.length - 1 < index) {
+          n = Math.min(99.99, $(p).data().percent);
+          m = 1;
+          ns.push(n);
+          m = ms.push(1);
+        } else {
+          n = ns[index];
+          m = ms[index];
+        }
+        if (!msie) {
+          if (m >= 50) {
+            p.className = 'pie';
+          }
+        } else {
+          var d = document.createElement('div'),
+              pn = p.parentNode;
+
+          if (m > 50) {
+            d.className = 'pie';
+          } else {
+            d.className = 'pie less50';
+          }
+          d.innerHTML = p.innerHTML;
+          pn.insertBefore(d, p);
+          pn.removeChild(p);
+          p = d;
+        }
+        p.style.animationDelay = -m++ + 's';
+        if (m <= n) {
+          if (index === 0) requestAnimationFrame(loop);
+        } else {
+          p.style.animationDelay = -n + 's';
+        }
+        ms[index] = m;
+      });
+    },
+        _init = function _init() {
+      $p = $(".pie");
+      requestAnimationFrame(loop);
+    };
+
+    return {
+      init: _init
+    };
+  }(),
+
+
+  // Módulo de control del Avísame
+  notifyRequest = function () {
+    var currentNode = null,
+        messages = {
+      notAuthenticated: "Es necesario que inicies sesión para completar esta acción.",
+      alreadySignedUp: "Ya estás inscrito a las notificaciones de este producto.",
+      success: "¡Hecho!, te notificaremos con las novedades de este producto en tu correo.",
+      error: "No se ha podido procesar tu petición, inténtalo más tarde."
+    },
+        deferredOptions = {
+      errorenum: game.enums.webNotifyResponses,
+      done: {
+        alreadySignedUp: function alreadySignedUp(response) {
+          game.ui.alerts.add(messages.alreadySignedUp, "warning");
+        },
+        success: function success(response) {
+          game.ui.alerts.add(messages.success, "success");
+        },
+        error: function error(response) {
+          game.ui.alerts.add(messages.error, "warning");
+        }
+      },
+      fail: {
+        notAuthenticated: function notAuthenticated(response) {
+          showLogin(event.currentTarget.dataset.sku);
+        }
+      },
+      always: function always() {
+        game.loader.completed();
+      }
+    },
+        showLogin = function showLogin() {
+      // El servicio devuelve login incorrecto pero hay alguna cookie residual
+      if (game.login.isAutenticathed) game.login.resetSession(true);
+      game.ui.alerts.add(messages.notAuthenticated, "warning");
+      game.login.showLogin(currentNode.dataset.sku, deferredOptions, game.enums.callBackActionType.sendNotifyRequest);
+      game.loader.completed();
+    },
+        sendNotifyRequest = function sendNotifyRequest() {
+      game.loader.inProgress();
+      if (!game.login.isAutenticathed) showLogin(currentNode.dataset.sku);else game.api.product.sendNotifyRequest(currentNode.dataset.sku, deferredOptions);
+    },
+        bind = function bind() {
+      Array.prototype.forEach.call(document.querySelectorAll(".do-notify-request"), function (button, index, buttons) {
+        button.addEventListener("click", function (event) {
+          event.preventDefault();
+          currentNode = event.currentTarget;
+          if (currentNode.classList.contains('disabled')) if (typeof event.currentTarget.dataset.sku === 'undefined') {
+            game.ui.alerts.add(messages.error, "warning");
+            return false;
+          }
+          sendNotifyRequest();
+          return false;
+        });
+      });
+    };
+
+    bind();
+
+    return {
+      init: bind,
+      sendNotifyRequest: sendNotifyRequest
+    };
+  }();
+
+  // Inicialización de la clase product
+  $(function () {
+    comments.init();
+    anchors.init();
+    tooBigElements.init();
+    video.init();
+    carouselElements.init();
+    extensionDeVenta.init();
+    multiReserva.init();
+    animacionPuntuacion.init();
+    notifyRequest.init();
+
+    (function () {
+      var img = document.querySelector('figure img'),
+          current = document.querySelector('.btn.btn-secondary-outline.btn-sm.sharp.active[href]');
+
+      function getSku(href) {
+        var s = href.split('/');
+        return s[s.length - 1];
+      }
+
+      function setImgSrc(source) {
+        var src = img.src,
+            sku = getSku(source.href);
+
+        img.src = 'https://m2.game.es/COVERV2/3D_L/' + sku.substring(0, 3) + '/' + sku + '.png';
+        img.onerror = function () {
+          img.onerror = null;
+          img.src = src;
+          source.removeEventListener('mouseenter', mouseenterListener, true);
+          source.removeEventListener('mouseleave', mouseleaveListener, true);
+        };
+      }
+
+      function mouseenterListener(e) {
+        setImgSrc(e.currentTarget);
+      }
+
+      function mouseleaveListener() {
+        setImgSrc(current);
+      }
+
+      [].forEach.call(document.querySelectorAll('.btn.btn-secondary-outline.btn-sm.sharp[href]'), function (a) {
+        a.addEventListener('mouseenter', mouseenterListener, true);
+        a.addEventListener('mouseleave', mouseleaveListener, true);
+      });
+    })();
+  });
+
+  return {
+    comments: comments,
+    tooBigElements: tooBigElements,
+    sendNotifyRequest: notifyRequest.sendNotifyRequest
+  };
+}();
+
+game.api.product = function () {
+
+  var sendNotifyRequest = function sendNotifyRequest(sku, deferredoptions, qUnitCallback) {
+    var __RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val(),
+        ajaxOptions = {
+      url: '/Product/WebNotifyProductUser',
+      type: "POST",
+      data: { sku: sku, __RequestVerificationToken: __RequestVerificationToken }
+    };
+
+    return game.api.ajax(ajaxOptions, deferredoptions, qUnitCallback);
+  };
+
+  return {
+    sendNotifyRequest: sendNotifyRequest
+  };
+}();

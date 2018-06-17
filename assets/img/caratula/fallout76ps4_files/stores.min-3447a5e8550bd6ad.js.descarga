@@ -1,0 +1,3075 @@
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+/// <reference path="../../game/game.enums.js" />
+
+// ReSharper disable StatementIsNotTerminated
+// ==ClosureCompiler==
+// @compilation_level ADVANCED_OPTIMIZATIONS
+// @externs_url http://closure-compiler.googlecode.com/svn/trunk/contrib/externs/maps/google_maps_api_v3_3.js
+// ==/ClosureCompiler==
+// @requires : game.enums.js
+/**
+ * @name MarkerClusterer for Google Maps v3
+ * @version version 1.0.1
+ * @author Luke Mahe
+ * @fileoverview
+ * The library creates and manages per-zoom-level clusters for large amounts of
+ * markers.
+ * <br/>
+ * This is a v3 implementation of the
+ * <a href="http://gmaps-utility-library-dev.googlecode.com/svn/tags/markerclusterer/"
+ * >v2 MarkerClusterer</a>.
+ */
+
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * A Marker Clusterer that clusters markers.
+ *
+ * @param {google.maps.Map} map The Google map to attach to.
+ * @param {Array.<google.maps.Marker>=} opt_markers Optional markers to add to
+ *   the cluster.
+ * @param {Object=} opt_options support the following options:
+ *     'gridSize': (number) The grid size of a cluster in pixels.
+ *     'maxZoom': (number) The maximum zoom level that a marker can be part of a
+ *                cluster.
+ *     'zoomOnClick': (boolean) Whether the default behaviour of clicking on a
+ *                    cluster is to zoom into it.
+ *     'averageCenter': (boolean) Wether the center of each cluster should be
+ *                      the average of all markers in the cluster.
+ *     'minimumClusterSize': (number) The minimum number of markers to be in a
+ *                           cluster before the markers are hidden and a count
+ *                           is shown.
+ *     'styles': (object) An object that has style properties:
+ *       'url': (string) The image url.
+ *       'height': (number) The image height.
+ *       'width': (number) The image width.
+ *       'anchor': (Array) The anchor position of the label text.
+ *       'textColor': (string) The text color.
+ *       'textSize': (number) The text size.
+ *       'backgroundPosition': (string) The position of the backgound x, y.
+ * @constructor
+ * @extends google.maps.OverlayView
+ */
+function MarkerClusterer(map, opt_markers, opt_options) {
+  // MarkerClusterer implements google.maps.OverlayView interface. We use the
+  // extend function to extend MarkerClusterer with google.maps.OverlayView
+  // because it might not always be available when the code is defined so we
+  // look for it at the last possible moment. If it doesn't exist now then
+  // there is no point going ahead :)
+  this.extend(MarkerClusterer, google.maps.OverlayView);
+  this.map_ = map;
+
+  /**
+   * @type {Array.<google.maps.Marker>}
+   * @private
+   */
+  this.markers_ = [];
+
+  /**
+   *  @type {Array.<Cluster>}
+   */
+  this.clusters_ = [];
+
+  this.sizes = [53, 56, 66, 78, 90];
+
+  /**
+   * @private
+   */
+  this.styles_ = [];
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.ready_ = false;
+
+  var options = opt_options || {};
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.gridSize_ = options['gridSize'] || 60;
+
+  /**
+   * @private
+   */
+  this.minClusterSize_ = options['minimumClusterSize'] || 2;
+
+  /**
+   * @type {?number}
+   * @private
+   */
+  this.maxZoom_ = options['maxZoom'] || null;
+
+  this.styles_ = options['styles'] || [];
+
+  /* Personalizaci�n fer */
+  this.stylesPickAvailable_ = [];
+  this.stylesShipAvailable_ = [];
+  this.stylesNotAvailable_ = [];
+  this.clickAndCollectMode = options['clickAndCollectMode'] || false;
+  /* Personalizaci�n fer */
+
+  /**
+   * @type {string}
+   * @private
+   */
+  this.imagePath_ = options['imagePath'] || this.MARKER_CLUSTER_IMAGE_PATH_;
+
+  /**
+   * @type {string}
+   * @private
+   */
+  this.imageExtension_ = options['imageExtension'] || this.MARKER_CLUSTER_IMAGE_EXTENSION_;
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.zoomOnClick_ = true;
+
+  if (options['zoomOnClick'] != undefined) {
+    this.zoomOnClick_ = options['zoomOnClick'];
+  }
+
+  /**
+   * @type {boolean}
+   * @private
+   */
+  this.averageCenter_ = false;
+
+  if (options['averageCenter'] != undefined) {
+    this.averageCenter_ = options['averageCenter'];
+  }
+
+  this.setupStyles_();
+
+  this.setMap(map);
+
+  /**
+   * @type {number}
+   * @private
+   */
+  this.prevZoom_ = this.map_.getZoom();
+
+  // Add the map event listeners
+  var that = this;
+  google.maps.event.addListener(this.map_, 'zoom_changed', function () {
+    // Determines map type and prevent illegal zoom levels
+    var zoom = that.map_.getZoom();
+    var minZoom = that.map_.minZoom || 0;
+    var maxZoom = Math.min(that.map_.maxZoom || 100, that.map_.mapTypes[that.map_.getMapTypeId()].maxZoom);
+    zoom = Math.min(Math.max(zoom, minZoom), maxZoom);
+
+    if (that.prevZoom_ != zoom) {
+      that.prevZoom_ = zoom;
+      that.resetViewport();
+    }
+  });
+
+  google.maps.event.addListener(this.map_, 'idle', function () {
+    that.redraw();
+  });
+
+  // Finally, add the markers
+  if (opt_markers && (opt_markers.length || Object.keys(opt_markers).length)) {
+    this.addMarkers(opt_markers, false);
+  }
+}
+
+/**
+ * The marker cluster image path.
+ *
+ * @type {string}
+ * @private
+ */
+MarkerClusterer.prototype.MARKER_CLUSTER_IMAGE_PATH_ = 'https://media.game.es/Img-statics/map/m';
+
+/**
+ * The marker cluster image path.
+ *
+ * @type {string}
+ * @private
+ */
+MarkerClusterer.prototype.MARKER_CLUSTER_IMAGE_EXTENSION_ = 'png';
+
+/**
+ * Extends a objects prototype by anothers.
+ *
+ * @param {Object} obj1 The object to be extended.
+ * @param {Object} obj2 The object to extend with.
+ * @return {Object} The new extended object.
+ * @ignore
+ */
+MarkerClusterer.prototype.extend = function (obj1, obj2) {
+  return function (object) {
+    for (var property in object.prototype) {
+      this.prototype[property] = object.prototype[property];
+    }
+    return this;
+  }.apply(obj1, [obj2]);
+};
+
+/**
+ * Implementaion of the interface method.
+ * @ignore
+ */
+MarkerClusterer.prototype.onAdd = function () {
+  this.setReady_(true);
+};
+
+/**
+ * Implementaion of the interface method.
+ * @ignore
+ */
+MarkerClusterer.prototype.draw = function () {};
+
+/**
+ * Sets up the styles object.
+ *
+ * @private
+ */
+MarkerClusterer.prototype.setupStyles_ = function () {
+  if (this.styles_.length) {
+    return;
+  }
+
+  for (var i = 0, size; size = this.sizes[i]; i++) {
+    this.styles_.push({
+      url: this.imagePath_ + (i + 1) + '.' + this.imageExtension_,
+      height: size,
+      width: size
+    });
+    /* Personalizaci�n fer */
+    if (this.clickAndCollectMode) {
+      this.stylesPickAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 'a.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+
+      this.stylesShipAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 's.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+
+      this.stylesNotAvailable_.push({
+        url: this.imagePath_ + (i + 1) + 'n.' + this.imageExtension_,
+        height: size,
+        width: size
+      });
+    }
+    /* Fin Personalizaci�n fer */
+  }
+};
+
+/**
+ *  Fit the map to the bounds of the markers in the clusterer.
+ */
+MarkerClusterer.prototype.fitMapToMarkers = function () {
+  var markers = this.getMarkers();
+  var bounds = new google.maps.LatLngBounds();
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    bounds.extend(marker.getPosition());
+  }
+
+  this.map_.fitBounds(bounds);
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStyles = function (styles) {
+  this.styles_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStylesPickAvailable = function (styles) {
+  this.stylesPickAvailable_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setStylesShipAvailable = function (styles) {
+  this.stylesShipAvailable_ = styles;
+};
+
+/**
+ *  Sets the styles.
+ *
+ *  @param {Object} styles The style to set.
+ */
+MarkerClusterer.prototype.setNotAvailable = function (styles) {
+  this.stylesNotAvailable_ = styles;
+};
+
+/**
+ *  Gets the styles.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStyles = function () {
+  return this.styles_;
+};
+
+/* Personalizaci�n fer */
+/**
+ *  Gets the styles pick available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesPickAvailable = function () {
+  return this.stylesPickAvailable_;
+};
+
+/**
+ *  Gets the styles ship available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesShipAvailable = function () {
+  return this.stylesShipAvailable_;
+};
+
+/**
+ *  Gets the styles not available.
+ *
+ *  @return {Object} The styles object.
+ */
+MarkerClusterer.prototype.getStylesNotAvailable = function () {
+  return this.stylesNotAvailable_;
+};
+
+/* Fin Personalizaci�n fer */
+
+/**
+ * Whether zoom on click is set.
+ *
+ * @return {boolean} True if zoomOnClick_ is set.
+ */
+MarkerClusterer.prototype.isZoomOnClick = function () {
+  return this.zoomOnClick_;
+};
+
+/**
+ * Whether average center is set.
+ *
+ * @return {boolean} True if averageCenter_ is set.
+ */
+MarkerClusterer.prototype.isAverageCenter = function () {
+  return this.averageCenter_;
+};
+
+/**
+ *  Returns the array of markers in the clusterer.
+ *
+ *  @return {Array.<google.maps.Marker>} The markers.
+ */
+MarkerClusterer.prototype.getMarkers = function () {
+  return this.markers_;
+};
+
+/**
+ *  Returns the number of markers in the clusterer
+ *
+ *  @return {Number} The number of markers.
+ */
+MarkerClusterer.prototype.getTotalMarkers = function () {
+  return this.markers_.length;
+};
+
+/**
+ *  Sets the max zoom for the clusterer.
+ *
+ *  @param {number} maxZoom The max zoom level.
+ */
+MarkerClusterer.prototype.setMaxZoom = function (maxZoom) {
+  this.maxZoom_ = maxZoom;
+};
+
+/**
+ *  Gets the max zoom for the clusterer.
+ *
+ *  @return {number} The max zoom level.
+ */
+MarkerClusterer.prototype.getMaxZoom = function () {
+  return this.maxZoom_;
+};
+
+/**
+ *  The function for calculating the cluster icon image.
+ *
+ *  @param {Array.<google.maps.Marker>} markers The markers in the clusterer.
+ *  @param {number} numStyles The number of styles available.
+ *  @return {Object} A object properties: 'text' (string) and 'index' (number).
+ *  @private
+ */
+MarkerClusterer.prototype.calculator_ = function (markers, numStyles) {
+  var index = 0;
+  var count = markers.length;
+  var dv = count;
+  while (dv !== 0) {
+    dv = parseInt(dv / 10, 10);
+    index++;
+  }
+
+  index = Math.min(index, numStyles);
+  return {
+    text: count,
+    index: index
+  };
+};
+
+/**
+ * Set the calculator function.
+ *
+ * @param {function(Array, number)} calculator The function to set as the
+ *     calculator. The function should return a object properties:
+ *     'text' (string) and 'index' (number).
+ *
+ */
+MarkerClusterer.prototype.setCalculator = function (calculator) {
+  this.calculator_ = calculator;
+};
+
+/**
+ * Get the calculator function.
+ *
+ * @return {function(Array, number)} the calculator function.
+ */
+MarkerClusterer.prototype.getCalculator = function () {
+  return this.calculator_;
+};
+
+/**
+ * Add an array of markers to the clusterer.
+ *
+ * @param {Array.<google.maps.Marker>} markers The markers to add.
+ * @param {boolean=} opt_nodraw Whether to redraw the clusters.
+ */
+MarkerClusterer.prototype.addMarkers = function (markers, opt_nodraw) {
+  if (markers.length) {
+    for (var i = 0, marker; marker = markers[i]; i++) {
+      this.pushMarkerTo_(marker);
+    }
+  } else if (Object.keys(markers).length) {
+    for (var marker in markers) {
+      this.pushMarkerTo_(markers[marker]);
+    }
+  }
+  if (!opt_nodraw) {
+    this.redraw();
+  }
+};
+
+/**
+ * Pushes a marker to the clusterer.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @private
+ */
+MarkerClusterer.prototype.pushMarkerTo_ = function (marker) {
+  marker.isAdded = false;
+  if (marker['draggable']) {
+    // If the marker is draggable add a listener so we update the clusters on
+    // the drag end.
+    var that = this;
+    google.maps.event.addListener(marker, 'dragend', function () {
+      marker.isAdded = false;
+      that.repaint();
+    });
+  }
+  this.markers_.push(marker);
+};
+
+/**
+ * Adds a marker to the clusterer and redraws if needed.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @param {boolean=} opt_nodraw Whether to redraw the clusters.
+ */
+MarkerClusterer.prototype.addMarker = function (marker, opt_nodraw) {
+  this.pushMarkerTo_(marker);
+  if (!opt_nodraw) {
+    this.redraw();
+  }
+};
+
+/**
+ * Removes a marker and returns true if removed, false if not
+ *
+ * @param {google.maps.Marker} marker The marker to remove
+ * @return {boolean} Whether the marker was removed or not
+ * @private
+ */
+MarkerClusterer.prototype.removeMarker_ = function (marker) {
+  var index = -1;
+  if (this.markers_.indexOf) {
+    index = this.markers_.indexOf(marker);
+  } else {
+    for (var i = 0, m; m = this.markers_[i]; i++) {
+      if (m == marker) {
+        index = i;
+        break;
+      }
+    }
+  }
+
+  if (index == -1) {
+    // Marker is not in our list of markers.
+    return false;
+  }
+
+  marker.setMap(null);
+
+  this.markers_.splice(index, 1);
+
+  return true;
+};
+
+/**
+ * Remove a marker from the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to remove.
+ * @param {boolean=} opt_nodraw Optional boolean to force no redraw.
+ * @return {boolean} True if the marker was removed.
+ */
+MarkerClusterer.prototype.removeMarker = function (marker, opt_nodraw) {
+  var removed = this.removeMarker_(marker);
+
+  if (!opt_nodraw && removed) {
+    this.resetViewport();
+    this.redraw();
+    return true;
+  } else {
+    return false;
+  }
+};
+
+/**
+ * Removes an array of markers from the cluster.
+ *
+ * @param {Array.<google.maps.Marker>} markers The markers to remove.
+ * @param {boolean=} opt_nodraw Optional boolean to force no redraw.
+ */
+MarkerClusterer.prototype.removeMarkers = function (markers, opt_nodraw) {
+  var removed = false;
+
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    var r = this.removeMarker_(marker);
+    removed = removed || r;
+  }
+
+  if (!opt_nodraw && removed) {
+    this.resetViewport();
+    this.redraw();
+    return true;
+  }
+};
+
+/**
+ * Sets the clusterer's ready state.
+ *
+ * @param {boolean} ready The state.
+ * @private
+ */
+MarkerClusterer.prototype.setReady_ = function (ready) {
+  if (!this.ready_) {
+    this.ready_ = ready;
+    this.createClusters_();
+  }
+};
+
+/**
+ * Returns the number of clusters in the clusterer.
+ *
+ * @return {number} The number of clusters.
+ */
+MarkerClusterer.prototype.getTotalClusters = function () {
+  return this.clusters_.length;
+};
+
+/**
+ * Returns the google map that the clusterer is associated with.
+ *
+ * @return {google.maps.Map} The map.
+ */
+MarkerClusterer.prototype.getMap = function () {
+  return this.map_;
+};
+
+/**
+ * Sets the google map that the clusterer is associated with.
+ *
+ * @param {google.maps.Map} map The map.
+ */
+MarkerClusterer.prototype.setMap = function (map) {
+  this.map_ = map;
+};
+
+/**
+ * Returns the size of the grid.
+ *
+ * @return {number} The grid size.
+ */
+MarkerClusterer.prototype.getGridSize = function () {
+  return this.gridSize_;
+};
+
+/**
+ * Sets the size of the grid.
+ *
+ * @param {number} size The grid size.
+ */
+MarkerClusterer.prototype.setGridSize = function (size) {
+  this.gridSize_ = size;
+};
+
+/**
+ * Returns the min cluster size.
+ *
+ * @return {number} The grid size.
+ */
+MarkerClusterer.prototype.getMinClusterSize = function () {
+  return this.minClusterSize_;
+};
+
+/**
+ * Sets the min cluster size.
+ *
+ * @param {number} size The grid size.
+ */
+MarkerClusterer.prototype.setMinClusterSize = function (size) {
+  this.minClusterSize_ = size;
+};
+
+/**
+ * Extends a bounds object by the grid size.
+ *
+ * @param {google.maps.LatLngBounds} bounds The bounds to extend.
+ * @return {google.maps.LatLngBounds} The extended bounds.
+ */
+MarkerClusterer.prototype.getExtendedBounds = function (bounds) {
+  var projection = this.getProjection();
+
+  // Turn the bounds into latlng.
+  var tr = new google.maps.LatLng(bounds.getNorthEast().lat(), bounds.getNorthEast().lng());
+  var bl = new google.maps.LatLng(bounds.getSouthWest().lat(), bounds.getSouthWest().lng());
+
+  // Convert the points to pixels and the extend out by the grid size.
+  var trPix = projection.fromLatLngToDivPixel(tr);
+  trPix.x += this.gridSize_;
+  trPix.y -= this.gridSize_;
+
+  var blPix = projection.fromLatLngToDivPixel(bl);
+  blPix.x -= this.gridSize_;
+  blPix.y += this.gridSize_;
+
+  // Convert the pixel points back to LatLng
+  var ne = projection.fromDivPixelToLatLng(trPix);
+  var sw = projection.fromDivPixelToLatLng(blPix);
+
+  // Extend the bounds to contain the new bounds.
+  bounds.extend(ne);
+  bounds.extend(sw);
+
+  return bounds;
+};
+
+/**
+ * Determins if a marker is contained in a bounds.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @param {google.maps.LatLngBounds} bounds The bounds to check against.
+ * @return {boolean} True if the marker is in the bounds.
+ * @private
+ */
+MarkerClusterer.prototype.isMarkerInBounds_ = function (marker, bounds) {
+  return bounds.contains(marker.getPosition());
+};
+
+/**
+ * Clears all clusters and markers from the clusterer.
+ */
+MarkerClusterer.prototype.clearMarkers = function () {
+  this.resetViewport(true);
+
+  // Set the markers a empty array.
+  this.markers_ = [];
+};
+
+/**
+ * Clears all existing clusters and recreates them.
+ * @param {boolean} opt_hide To also hide the marker.
+ */
+MarkerClusterer.prototype.resetViewport = function (opt_hide) {
+  // Remove all the clusters
+  for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
+    cluster.remove();
+  }
+
+  // Reset the markers to not be added and to be invisible.
+  for (var i = 0, marker; marker = this.markers_[i]; i++) {
+    marker.isAdded = false;
+    if (opt_hide) {
+      marker.setMap(null);
+    }
+  }
+
+  this.clusters_ = [];
+};
+
+/**
+ *
+ */
+MarkerClusterer.prototype.repaint = function () {
+  var oldClusters = this.clusters_.slice();
+  this.clusters_.length = 0;
+  this.resetViewport();
+  this.redraw();
+
+  // Remove the old clusters.
+  // Do it in a timeout so the other clusters have been drawn first.
+  window.setTimeout(function () {
+    for (var i = 0, cluster; cluster = oldClusters[i]; i++) {
+      cluster.remove();
+    }
+  }, 0);
+};
+
+/**
+ * Redraws the clusters.
+ */
+MarkerClusterer.prototype.redraw = function () {
+  this.createClusters_();
+};
+
+/**
+ * Calculates the distance between two latlng locations in km.
+ * @see http://www.movable-type.co.uk/scripts/latlong.html
+ *
+ * @param {google.maps.LatLng} p1 The first lat lng point.
+ * @param {google.maps.LatLng} p2 The second lat lng point.
+ * @return {number} The distance between the two points in km.
+ * @private
+*/
+MarkerClusterer.prototype.distanceBetweenPoints_ = function (p1, p2) {
+  if (!p1 || !p2) {
+    return 0;
+  }
+
+  var R = 6371; // Radius of the Earth in km
+  var dLat = (p2.lat() - p1.lat()) * Math.PI / 180;
+  var dLon = (p2.lng() - p1.lng()) * Math.PI / 180;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(p1.lat() * Math.PI / 180) * Math.cos(p2.lat() * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+  return d;
+};
+
+/**
+ * Add a marker to a cluster, or creates a new cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @private
+ */
+MarkerClusterer.prototype.addToClosestCluster_ = function (marker) {
+  var distance = 40000; // Some large number
+  var clusterToAddTo = null;
+  var pos = marker.getPosition();
+  for (var i = 0, cluster; cluster = this.clusters_[i]; i++) {
+    var center = cluster.getCenter();
+    if (center) {
+      var d = this.distanceBetweenPoints_(center, marker.getPosition());
+      if (d < distance) {
+        distance = d;
+        clusterToAddTo = cluster;
+      }
+    }
+  }
+
+  if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)) {
+    clusterToAddTo.addMarker(marker);
+  } else {
+    var cluster = new Cluster(this);
+    cluster.addMarker(marker);
+    this.clusters_.push(cluster);
+  }
+};
+
+/**
+ * Creates the clusters.
+ *
+ * @private
+ */
+MarkerClusterer.prototype.createClusters_ = function () {
+  if (!this.ready_) {
+    return;
+  }
+
+  // Get our current map view bounds.
+  // Create a new bounds object so we don't affect the map.
+  var mapBounds = new google.maps.LatLngBounds(this.map_.getBounds().getSouthWest(), this.map_.getBounds().getNorthEast());
+  var bounds = this.getExtendedBounds(mapBounds);
+
+  for (var i = 0, marker; marker = this.markers_[i]; i++) {
+    if (!marker.isAdded && this.isMarkerInBounds_(marker, bounds)) {
+      this.addToClosestCluster_(marker);
+    }
+  }
+  google.maps.event.trigger(this, "clusteringend", this);
+};
+
+/**
+ * A cluster that contains markers.
+ *
+ * @param {MarkerClusterer} markerClusterer The markerclusterer that this
+ *     cluster is associated with.
+ * @constructor
+ * @ignore
+ */
+function Cluster(markerClusterer) {
+  this.markerClusterer_ = markerClusterer;
+  this.map_ = markerClusterer.getMap();
+  this.gridSize_ = markerClusterer.getGridSize();
+  this.minClusterSize_ = markerClusterer.getMinClusterSize();
+  this.averageCenter_ = markerClusterer.isAverageCenter();
+  this.center_ = null;
+  this.markers_ = [];
+  this.bounds_ = null;
+  /*Personalizaci�n iconos click and collect */
+  this.isAvailable = false;
+  this.isAvailableForShip = false;
+  this.isNotAvailable = true;
+  /*Personalizaci�n iconos click and collect */
+
+  this.clusterIcon_ = new ClusterIcon(this, markerClusterer.getStyles(), markerClusterer.getStylesPickAvailable(), markerClusterer.getStylesShipAvailable(), markerClusterer.getStylesNotAvailable(), markerClusterer.getGridSize());
+}
+
+/**
+ * Determins if a marker is already added to the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @return {boolean} True if the marker is already added.
+ */
+Cluster.prototype.isMarkerAlreadyAdded = function (marker) {
+  if (this.markers_.indexOf) {
+    return this.markers_.indexOf(marker) != -1;
+  } else {
+    for (var i = 0, m; m = this.markers_[i]; i++) {
+      if (m == marker) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * Add a marker the cluster.
+ *
+ * @param {google.maps.Marker} marker The marker to add.
+ * @return {boolean} True if the marker was added.
+ */
+Cluster.prototype.addMarker = function (marker) {
+  if (this.isMarkerAlreadyAdded(marker)) {
+    return false;
+  }
+
+  if (!this.center_) {
+    this.center_ = marker.getPosition();
+    this.calculateBounds_();
+  } else {
+    if (this.averageCenter_) {
+      var l = this.markers_.length + 1;
+      var lat = (this.center_.lat() * (l - 1) + marker.getPosition().lat()) / l;
+      var lng = (this.center_.lng() * (l - 1) + marker.getPosition().lng()) / l;
+      this.center_ = new google.maps.LatLng(lat, lng);
+      this.calculateBounds_();
+    }
+  }
+
+  marker.isAdded = true;
+  this.markers_.push(marker);
+
+  /* Personalizaci�n fer */
+  if (marker.data.Type) {
+    switch (marker.data.Type) {
+      case game.enums.storePickAndClickStatus.ready:
+        this.isAvailable = true;
+        break;
+      case game.enums.storePickAndClickStatus.ship:
+        this.isAvailableForShip = true;
+        break;
+    }
+  }
+  /* Fin Personalizaci�n fer */
+  var len = this.markers_.length;
+  if (len < this.minClusterSize_ && marker.getMap() != this.map_) {
+    // Min cluster size not reached so show the marker.
+    marker.setMap(this.map_);
+  }
+
+  if (len == this.minClusterSize_) {
+    // Hide the markers that were showing.
+    for (var i = 0; i < len; i++) {
+      this.markers_[i].setMap(null);
+    }
+  }
+
+  if (len >= this.minClusterSize_) {
+    marker.setMap(null);
+  }
+
+  this.updateIcon();
+  return true;
+};
+
+/**
+ * Returns the marker clusterer that the cluster is associated with.
+ *
+ * @return {MarkerClusterer} The associated marker clusterer.
+ */
+Cluster.prototype.getMarkerClusterer = function () {
+  return this.markerClusterer_;
+};
+
+/**
+ * Returns the bounds of the cluster.
+ *
+ * @return {google.maps.LatLngBounds} the cluster bounds.
+ */
+Cluster.prototype.getBounds = function () {
+  var bounds = new google.maps.LatLngBounds(this.center_, this.center_);
+  var markers = this.getMarkers();
+  for (var i = 0, marker; marker = markers[i]; i++) {
+    bounds.extend(marker.getPosition());
+  }
+  return bounds;
+};
+
+/**
+ * Removes the cluster
+ */
+Cluster.prototype.remove = function () {
+  this.clusterIcon_.remove();
+  this.markers_.length = 0;
+  delete this.markers_;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {number} The cluster center.
+ */
+Cluster.prototype.getSize = function () {
+  return this.markers_.length;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {Array.<google.maps.Marker>} The cluster center.
+ */
+Cluster.prototype.getMarkers = function () {
+  return this.markers_;
+};
+
+/**
+ * Returns the center of the cluster.
+ *
+ * @return {google.maps.LatLng} The cluster center.
+ */
+Cluster.prototype.getCenter = function () {
+  return this.center_;
+};
+
+/**
+ * Calculated the extended bounds of the cluster with the grid.
+ *
+ * @private
+ */
+Cluster.prototype.calculateBounds_ = function () {
+  var bounds = new google.maps.LatLngBounds(this.center_, this.center_);
+  this.bounds_ = this.markerClusterer_.getExtendedBounds(bounds);
+};
+
+/**
+ * Determines if a marker lies in the clusters bounds.
+ *
+ * @param {google.maps.Marker} marker The marker to check.
+ * @return {boolean} True if the marker lies in the bounds.
+ */
+Cluster.prototype.isMarkerInClusterBounds = function (marker) {
+  return this.bounds_.contains(marker.getPosition());
+};
+
+/**
+ * Returns the map that the cluster is associated with.
+ *
+ * @return {google.maps.Map} The map.
+ */
+Cluster.prototype.getMap = function () {
+  return this.map_;
+};
+
+/**
+ * Updates the cluster icon
+ */
+Cluster.prototype.updateIcon = function () {
+  var zoom = this.map_.getZoom();
+  var mz = this.markerClusterer_.getMaxZoom();
+
+  if (mz && zoom > mz) {
+    // The zoom is greater than our max zoom so show all the markers in cluster.
+    for (var i = 0, marker; marker = this.markers_[i]; i++) {
+      marker.setMap(this.map_);
+    }
+    return;
+  }
+
+  if (this.markers_.length < this.minClusterSize_) {
+    // Min cluster size not yet reached.
+    this.clusterIcon_.hide();
+    return;
+  }
+
+  var numStyles = this.markerClusterer_.getStyles().length;
+  var sums = this.markerClusterer_.getCalculator()(this.markers_, numStyles);
+  this.clusterIcon_.setCenter(this.center_);
+  this.clusterIcon_.setSums(sums);
+  this.clusterIcon_.show();
+};
+
+/**
+ * A cluster icon
+ *
+ * @param {Cluster} cluster The cluster to be associated with.
+ * @param {Object} styles An object that has style properties:
+ *     'url': (string) The image url.
+ *     'height': (number) The image height.
+ *     'width': (number) The image width.
+ *     'anchor': (Array) The anchor position of the label text.
+ *     'textColor': (string) The text color.
+ *     'textSize': (number) The text size.
+ *     'backgroundPosition: (string) The background postition x, y.
+ * @param {number=} opt_padding Optional padding to apply to the cluster icon.
+ * @constructor
+ * @extends google.maps.OverlayView
+ * @ignore
+ */
+function ClusterIcon(cluster, styles, stylesPickAvailable, stylesShipAvailable, stylesNotAvailable, opt_padding) {
+  cluster.getMarkerClusterer().extend(ClusterIcon, google.maps.OverlayView);
+
+  this.styles_ = styles;
+  this.stylesPickAvailable_ = stylesPickAvailable || null;
+  this.stylesShipAvailable_ = stylesShipAvailable || null;
+  this.stylesNotAvailable_ = stylesNotAvailable || null;
+  this.padding_ = opt_padding || null;
+  this.cluster_ = cluster;
+  this.clickAndCollectMode = cluster.markerClusterer_.clickAndCollectMode;
+  this.center_ = null;
+  this.map_ = cluster.getMap();
+  this.div_ = null;
+  this.sums_ = null;
+  this.visible_ = false;
+
+  this.setMap(this.map_);
+}
+
+/**
+ * Triggers the clusterclick event and zoom's if the option is set.
+ */
+ClusterIcon.prototype.triggerClusterClick = function () {
+  var markerClusterer = this.cluster_.getMarkerClusterer();
+
+  // Trigger the clusterclick event.
+  google.maps.event.trigger(markerClusterer, 'clusterclick', this.cluster_);
+
+  if (markerClusterer.isZoomOnClick()) {
+    // Zoom into the cluster.
+    this.map_.fitBounds(this.cluster_.getBounds());
+  }
+};
+
+/**
+ * Adding the cluster icon to the dom.
+ * @ignore
+ */
+ClusterIcon.prototype.onAdd = function () {
+  this.div_ = document.createElement('DIV');
+  if (this.visible_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.cssText = this.createCss(pos);
+    this.div_.innerHTML = this.sums_.text;
+  }
+
+  var panes = this.getPanes();
+  panes.overlayMouseTarget.appendChild(this.div_);
+
+  var that = this;
+  google.maps.event.addDomListener(this.div_, 'click', function () {
+    that.triggerClusterClick();
+  });
+};
+
+/**
+ * Returns the position to place the div dending on the latlng.
+ *
+ * @param {google.maps.LatLng} latlng The position in latlng.
+ * @return {google.maps.Point} The position in pixels.
+ * @private
+ */
+ClusterIcon.prototype.getPosFromLatLng_ = function (latlng) {
+  var pos = this.getProjection().fromLatLngToDivPixel(latlng);
+  pos.x -= parseInt(this.width_ / 2, 10);
+  pos.y -= parseInt(this.height_ / 2, 10);
+  return pos;
+};
+
+/**
+ * Draw the icon.
+ * @ignore
+ */
+ClusterIcon.prototype.draw = function () {
+  if (this.visible_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.top = pos.y + 'px';
+    this.div_.style.left = pos.x + 'px';
+  }
+};
+
+/**
+ * Hide the icon.
+ */
+ClusterIcon.prototype.hide = function () {
+  if (this.div_) {
+    this.div_.style.display = 'none';
+  }
+  this.visible_ = false;
+};
+
+/**
+ * Position and show the icon.
+ */
+ClusterIcon.prototype.show = function () {
+  if (this.div_) {
+    var pos = this.getPosFromLatLng_(this.center_);
+    this.div_.style.cssText = this.createCss(pos);
+    this.div_.style.display = '';
+  }
+  this.visible_ = true;
+};
+
+/**
+ * Remove the icon from the map
+ */
+ClusterIcon.prototype.remove = function () {
+  this.setMap(null);
+};
+
+/**
+ * Implementation of the onRemove interface.
+ * @ignore
+ */
+ClusterIcon.prototype.onRemove = function () {
+  if (this.div_ && this.div_.parentNode) {
+    this.hide();
+    this.div_.parentNode.removeChild(this.div_);
+    this.div_ = null;
+  }
+};
+
+/**
+ * Set the sums of the icon.
+ *
+ * @param {Object} sums The sums containing:
+ *   'text': (string) The text to display in the icon.
+ *   'index': (number) The style index of the icon.
+ */
+ClusterIcon.prototype.setSums = function (sums) {
+  this.sums_ = sums;
+  this.text_ = sums.text;
+  this.index_ = sums.index;
+  if (this.div_) {
+    this.div_.innerHTML = sums.text;
+  }
+
+  this.useStyle();
+};
+
+/**
+ * Sets the icon to the the styles.
+ */
+ClusterIcon.prototype.useStyle = function () {
+  var index = Math.max(0, this.sums_.index - 1);
+  index = Math.min(this.styles_.length - 1, index);
+  /* Personalizaci�n fer */
+  var style;
+  if (!this.clickAndCollectMode) {
+    var style = this.styles_[index];
+  } else {
+    //Estilos en funci�n de cascada, si disponible verde, sino y ship amarillo, sino rojo
+    if (this.cluster_.isAvailable) {
+      var style = this.stylesPickAvailable_[index];
+    } else if (this.cluster_.isAvailableForShip) {
+      var style = this.stylesShipAvailable_[index];
+    } else {
+      var style = this.stylesNotAvailable_[index];
+    }
+  }
+  /* Fin Personalizaci�n fer */
+
+  this.url_ = style['url'];
+  this.height_ = style['height'];
+  this.width_ = style['width'];
+  this.textColor_ = style['textColor'];
+  this.anchor_ = style['anchor'];
+  this.textSize_ = style['textSize'];
+  this.backgroundPosition_ = style['backgroundPosition'];
+};
+
+/**
+ * Sets the center of the icon.
+ *
+ * @param {google.maps.LatLng} center The latlng to set as the center.
+ */
+ClusterIcon.prototype.setCenter = function (center) {
+  this.center_ = center;
+};
+
+/**
+ * Create the css text based on the position of the icon.
+ *
+ * @param {google.maps.Point} pos The position.
+ * @return {string} The css style text.
+ */
+ClusterIcon.prototype.createCss = function (pos) {
+  var style = [];
+  style.push('background-image:url(' + this.url_ + ');');
+  var backgroundPosition = this.backgroundPosition_ ? this.backgroundPosition_ : '0 0';
+  style.push('background-position:' + backgroundPosition + ';');
+
+  if (_typeof(this.anchor_) === 'object') {
+    if (typeof this.anchor_[0] === 'number' && this.anchor_[0] > 0 && this.anchor_[0] < this.height_) {
+      style.push('height:' + (this.height_ - this.anchor_[0]) + 'px; padding-top:' + this.anchor_[0] + 'px;');
+    } else {
+      style.push('height:' + this.height_ + 'px; line-height:' + this.height_ + 'px;');
+    }
+    if (typeof this.anchor_[1] === 'number' && this.anchor_[1] > 0 && this.anchor_[1] < this.width_) {
+      style.push('width:' + (this.width_ - this.anchor_[1]) + 'px; padding-left:' + this.anchor_[1] + 'px;');
+    } else {
+      style.push('width:' + this.width_ + 'px; text-align:center;');
+    }
+  } else {
+    style.push('height:' + this.height_ + 'px; line-height:' + this.height_ + 'px; width:' + this.width_ + 'px; text-align:center;');
+  }
+
+  var txtColor = this.textColor_ ? this.textColor_ : 'white';
+  var txtSize = this.textSize_ ? this.textSize_ : 11;
+
+  style.push('cursor:pointer; top:' + pos.y + 'px; left:' + pos.x + 'px; color:' + txtColor + '; position:absolute; font-size:' + txtSize + 'px; font-family:Arial,sans-serif; font-weight:bold');
+  return style.join('');
+};
+
+// Export Symbols for Closure
+// If you are not going to compile with closure then you can remove the
+// code below.
+window['MarkerClusterer'] = MarkerClusterer;
+MarkerClusterer.prototype['addMarker'] = MarkerClusterer.prototype.addMarker;
+MarkerClusterer.prototype['addMarkers'] = MarkerClusterer.prototype.addMarkers;
+MarkerClusterer.prototype['clearMarkers'] = MarkerClusterer.prototype.clearMarkers;
+MarkerClusterer.prototype['fitMapToMarkers'] = MarkerClusterer.prototype.fitMapToMarkers;
+MarkerClusterer.prototype['getCalculator'] = MarkerClusterer.prototype.getCalculator;
+MarkerClusterer.prototype['getGridSize'] = MarkerClusterer.prototype.getGridSize;
+MarkerClusterer.prototype['getExtendedBounds'] = MarkerClusterer.prototype.getExtendedBounds;
+MarkerClusterer.prototype['getMap'] = MarkerClusterer.prototype.getMap;
+MarkerClusterer.prototype['getMarkers'] = MarkerClusterer.prototype.getMarkers;
+MarkerClusterer.prototype['getMaxZoom'] = MarkerClusterer.prototype.getMaxZoom;
+MarkerClusterer.prototype['getStyles'] = MarkerClusterer.prototype.getStyles;
+MarkerClusterer.prototype['getTotalClusters'] = MarkerClusterer.prototype.getTotalClusters;
+MarkerClusterer.prototype['getTotalMarkers'] = MarkerClusterer.prototype.getTotalMarkers;
+MarkerClusterer.prototype['redraw'] = MarkerClusterer.prototype.redraw;
+MarkerClusterer.prototype['removeMarker'] = MarkerClusterer.prototype.removeMarker;
+MarkerClusterer.prototype['removeMarkers'] = MarkerClusterer.prototype.removeMarkers;
+MarkerClusterer.prototype['resetViewport'] = MarkerClusterer.prototype.resetViewport;
+MarkerClusterer.prototype['repaint'] = MarkerClusterer.prototype.repaint;
+MarkerClusterer.prototype['setCalculator'] = MarkerClusterer.prototype.setCalculator;
+MarkerClusterer.prototype['setGridSize'] = MarkerClusterer.prototype.setGridSize;
+MarkerClusterer.prototype['setMaxZoom'] = MarkerClusterer.prototype.setMaxZoom;
+MarkerClusterer.prototype['onAdd'] = MarkerClusterer.prototype.onAdd;
+MarkerClusterer.prototype['draw'] = MarkerClusterer.prototype.draw;
+
+Cluster.prototype['getCenter'] = Cluster.prototype.getCenter;
+Cluster.prototype['getSize'] = Cluster.prototype.getSize;
+Cluster.prototype['getMarkers'] = Cluster.prototype.getMarkers;
+
+ClusterIcon.prototype['onAdd'] = ClusterIcon.prototype.onAdd;
+ClusterIcon.prototype['draw'] = ClusterIcon.prototype.draw;
+ClusterIcon.prototype['onRemove'] = ClusterIcon.prototype.onRemove;
+
+Object.keys = Object.keys || function (o) {
+  var result = [];
+  for (var name in o) {
+    if (o.hasOwnProperty(name)) result.push(name);
+  }
+  return result;
+};
+// ReSharper restore StatementIsNotTerminated
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+/* globals $, google, MarkerClusterer */
+/// <reference path="../external/google/markerclusterer.js" />
+/// <reference path="../external/jquery/jquery-1.11.2.js" />
+/// <reference path="../game/game.enums.js" />
+/// <reference path="../game/game.api.js" />
+/// <reference path="../game/game.request.js" />
+/// <reference path="../game/game.ui.js" />
+
+/**
+ * @namespace game
+ */
+var game = game || {};
+
+/**
+ * Gestión de la sección de tiendas de la web
+ *
+ * @class 
+ * @constructor   
+ * @requires game.properties.js
+ * @requires game.utils.js
+ * @requires game.request.js 
+ * @requires game.enums.js
+ * @requires game.search.js
+ */
+game.stores = function () {
+  var __$document = $(document),
+      __$window = $(window),
+      __body = new game.ui.Control('html, body'),
+      basePath = game.utils.getBasePath(),
+      Control = game.ui.Control,
+      MapV2 = function () {
+
+    function MapV2(wrapperControl, controls, googleApiKey, locatorParams, mapOptions, markerClustererOptions) {
+
+      this.wrapperControl = wrapperControl;
+      this.controls = controls;
+      this.hasScript = typeof window.google !== 'undefined' && typeof window.google.maps !== 'undefined';
+      this.locatorParams = locatorParams;
+      this.markers = [];
+
+      if (!this.hasScript) this.loadScript('https://maps.googleapis.com/maps/api/js?v=3.exp&key=' + googleApiKey, this.build.bind(this, mapOptions, markerClustererOptions));else this.build(mapOptions, markerClustererOptions);
+    };
+
+    MapV2.prototype.bindEvents = function () {
+      if (typeof this.bindEventsDone === 'undefined') {
+        __$document.on('click', this.controls.locator.selector, function (event) {
+          this.getNavigatorGeolocation.call(this);
+        }.bind(this));
+        this.bindEventsDone = true;
+      }
+    };
+
+    MapV2.prototype.build = function (mapOptions, markerClustererOptions) {
+
+      // Opciones o valores por defecto
+      this.options = {
+        map: Object.assign({
+          zoom: 5,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          center: new google.maps.LatLng(40.416888, -3.703534) // Puerta del Sol
+        }, mapOptions || {}),
+
+        markerClusterer: Object.assign({
+          gridSize: 50, /// Tamaño del grid para el cluster de tiendas            
+          maxZoom: 15 /// Nivel máximo al que se realiza el clustering
+        }, markerClustererOptions || {})
+      };
+      this.map = new google.maps.Map(this.controls.control._init()[0], this.options.map);
+      this.markerClusterer = new MarkerClusterer(this.map, [], this.options.markerClusterer);
+      this.bindEvents();
+    };
+
+    MapV2.prototype.centerOnMarkerBounds = function () {
+      try {
+        if (this.markers && this.markers[0]) {
+          var bounds = this.markers.map(function (marker) {
+            return { latitude: marker.data.latitude, longitude: marker.data.longitude };
+          });
+          fitBounds(bounds);
+        }
+      } catch (ex) {
+        return;
+      }
+    };
+
+    MapV2.prototype.clearMarkers = function () {
+      if (this.markerClusterer) this.markerClusterer.clearMarkers();
+      this.markers.forEach(function (marker) {
+        this.deleteMarker(marker);
+      }.bind(this));
+    };
+
+    MapV2.prototype.createPosition = function (coords) {
+      try {
+        return coords.latitude !== undefined ? new google.maps.LatLng(coords.latitude, coords.longitude) : coords;
+      } catch (ex) {
+        return false;
+      }
+    };
+
+    MapV2.prototype.createMarker = function (coords, title, data, imageUrl, size, infowindowContent, zIndex) {
+      try {
+        var icon = imageUrl ? new google.maps.MarkerImage(imageUrl, new google.maps.Size(size.width, size.height)) : undefined,
+            position = this.createPosition(coords),
+            marker = new google.maps.Marker({ position: position, map: this.map, title: title, icon: icon, zIndex: zIndex, data: data });
+        if (infowindowContent) {
+          var infoWindow = new google.maps.InfoWindow({ content: infowindowContent });
+          marker.addListener('click', function () {
+            infoWindow.open(this.map, marker);
+          }.bind(this));
+          infoWindow.addListener('domready', function () {
+            this.wrapperControl._init().trigger('infoWindowOpen');
+          }.bind(this));
+        }
+        return marker;
+      } catch (ex) {
+        var interval = setInterval(function () {
+          if (attempts-- > 0) this.createMarker(coords, title, data, imageUrl, size, infowindowContent, zIndex);else {
+            clearInterval(interval);
+            window.location.reload();
+            return false;
+          }
+        }, 1000);
+        return false;
+      }
+    };
+
+    MapV2.prototype.deleteMarker = function (marker) {
+      marker.setMap(null);
+      marker = null;
+    };
+
+    MapV2.prototype.fitBounds = function (latitude, longitude) {
+      var bounds = latitude.getCenter ? latitude : new google.maps.LatLngBounds();
+
+      if (!latitude.getCenter) {
+        if (!$.isArray(latitude)) {
+          latitude = [{ latitude: latitude, longitude: longitude }];
+        }
+
+        latitude.forEach(function (coords) {
+          var position = createPosition(coords);
+          bounds.extend(position);
+        });
+      }
+      this.map.fitBounds(bounds);
+    };
+
+    MapV2.prototype.getNavigatorGeolocation = function (userImageIcon, geolocationOptions) {
+      if (!navigator || !navigator.geolocation) game.ui.alerts.add("Tu dispositivo no es compatible con la geolocalización.", "warning");else {
+        navigator.geolocation.getCurrentPosition(
+        // Success
+        function (position) {
+          this.userPosition = position;
+
+          if (this.searchedMarker) this.deleteMarker(this.searchedMarker);
+          if (this.userLocationMarker) this.deleteMarker(this.userLocationMarker);
+
+          this.setCenter(position.coords);
+          this.userLocationMarker = this.createMarker(position.coords, "¡Estás aquí!", null, userImageIcon || "/Content/img/map/icon-lugar-user-maps.png", { width: 33, height: 52 }, "<p>¡Estás aquí!</p>");
+
+          /*
+            if (this.locatorParams.near) this.searchNearAvailableStore();
+            else
+          */
+          this.map.setZoom(this.locatorParams.zoom);
+        }.bind(this),
+        // Error
+        function () {
+          game.ui.alerts.add("Tu dispositivo no es compatible con la geolocalización.", "warning");
+        }.bind(this), Object.assign({}, { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }, geolocationOptions || {}));
+      }
+    };
+
+    MapV2.prototype.loadMarkerCluster = function () {
+      if (this.markerClusterer) this.markerClusterer.addMarkers(this.markers);else if (this.markers) this.markers.forEach(function (marker) {
+        marker.setMap(this.map);
+      }.bind(this));
+    };
+
+    MapV2.prototype.loadScript = function (src, callback) {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      if (callback) script.onload = callback;
+      document.getElementsByTagName("head")[0].appendChild(script);
+      script.src = src;
+
+      //__$document.trigger('googlemap.script.loaded');
+    };
+
+    MapV2.prototype.setZoomSafely = function (zoom) {
+      this.map.setZoom(Math.max(zoom || 0, this.map.getZoom(), this.options.zoom));
+    };
+
+    MapV2.prototype.setCenter = function (coords) {
+      this.map.setCenter(this.createPosition(coords));
+    };
+
+    MapV2.prototype.geocoding = function (address, callbacks) {
+      var geocoder = new google.maps.Geocoder();
+      geocoder.geocode({
+        'address': address,
+        "componentRestrictions": { "country": "ES" }
+      }, function (results, status) {
+        if (status === google.maps.GeocoderStatus.OK) callbacks.ok.apply(this, results);else callbacks.error.apply(this, results);
+        callbacks.always.apply(this);
+      });
+    };
+
+    MapV2.prototype.search = function (search, onDone, onError, always) {
+      this.geocoding(search, {
+        ok: onDone || function (result) {
+          if (this.searchedMarker) this.deleteMarker(this.searchedMarker);
+          if (this.userLocationMarker) this.deleteMarker(this.userLocationMarker);
+
+          this.searchedMarker = this.createMarker(result.geometry.location, 'Resultado de "' + search + '"', null, "/Content/img/map/icon-lugar-user-maps.png", { width: 33, height: 52 }, '<p>Resultado de "' + search + '"</p>');
+          this.setCenter(result.geometry.location);
+          if (result.geometry.viewport) this.fitBounds(result.geometry.viewport);
+
+          // if (config.clickAndPick) searchNearAvailableStore();
+        }.bind(this),
+        error: onError || function () {
+          game.ui.alerts.add("No se ha encontrado ningún resultado.", "warning");
+        },
+        always: always || function () {}
+      });
+    };
+
+    return MapV2;
+  }(),
+      StoresView = function () {
+    function StoresView(googleApiKey, querySelectors, storeParams, // Opcional
+    mapOptions, // Opcional
+    markerClustererOptions // Opcional
+    ) {
+
+      this.googleApiKey = googleApiKey;
+      this.mapOptions = mapOptions;
+      this.markerClustererOptions = markerClustererOptions;
+      this.setControls(querySelectors);
+
+      if (this.button._init().length === 0 || this.wrapper._init().length === 0 || this.map.control._init().length === 0) throw 'No están definidos los elementos mínimos necesarios para inicializar esta clase';else {
+        // Se construye igual que en el evento 'storeview.updateallparams'
+        this.setParams(this.button._init()[0]);
+        this.setTemplates(storeParams);
+
+        this.bindEvents(storeParams);
+      }
+    };
+
+    StoresView.prototype.build = function (event) {
+      // Obtener mapa (ya con el modal visible)
+      this.map.class = new MapV2(this.wrapper, this.map, this.googleApiKey, { near: false, zoom: 7 }, // locatorParams
+      this.mapOptions, this.markerClustererOptions);
+      // Obtener tiendas
+      this.getStores({ ok: this.addStores });
+    };
+
+    StoresView.prototype.getStores = function (callbacks) {
+      game.loader.inProgress();
+      game.api.stores.getPreordersStores({
+        done: function (data) {
+          data.userPosition = this.map.class.userPosition;
+          if (typeof callbacks.ok === 'function') callbacks.ok.call(this, data);
+        }.bind(this),
+        error: function () {
+          data.userPosition = this.map.class.userPosition;
+          if (typeof callbacks.error === 'function') callbacks.error.call(this);
+        }.bind(this),
+        always: function () {
+          game.loader.completed();
+          if (typeof callbacks.always === 'function') callbacks.always.call(this);
+        }.bind(this)
+      });
+
+      /*
+        Variante para tipo Click y recoger con sku y basketcode
+        game.api.stores.getClickAndCollectStock(132773,"NEW",{
+        done: function (data) {
+          data.userPosition = this.map.class.userPosition;
+          if (typeof callbacks.ok === 'function') callbacks.ok.call(this, data);
+        }.bind(this),
+        error: function () {
+          data.userPosition = this.map.class.userPosition;
+          if (typeof callbacks.error === 'function') callbacks.error.call(this);
+        }.bind(this),
+        always: function () {
+          if (typeof callbacks.always === 'function') callbacks.always.call(this);
+        }.bind(this)
+      });
+      */
+    };
+
+    StoresView.prototype.addStores = function (responseData) {
+
+      /*
+        Es diferente el objeto para búsquedas tipo click y recoger (con disponibilidad) y búsquedas genéricas.
+        (Leyenda: *** Sólo en click y recoger, --- Sólo en búsqueda normal)
+        Click&Collet: Game.Web.Business.Product.CnCStoreAvailabilityData
+        Address: "CADIZ, 14, LOCAL",
+        *** AvailabilityCode: "0", (Game.Web.Business.Product.AvailabilityCodeEnum: 0 >> No disponible. 1 >> Disponible, 2 >> Disponible para envío)
+      *** AvailabilityCodeEnum: 0, (Game.Web.Business.Product.AvailabilityCodeEnum: 0 >> No disponible. 1 >> Disponible, 2 >> Disponible para envío)
+        CloseDate: null,
+      Code: "063",
+      Department: "Zaragoza",
+      Latitude: "41.6512299"
+      Longitude: "-0.885235",
+      Name: "Zaragoza - Cadiz"
+      OpenDate: null,
+        *** Price: "39.95"
+      --- Prefix: "50",
+        Region: "ES",
+      Schedule: "",
+      Telephone: 976796182,
+      Town: "Zaragoza",
+        *** Type: "3", Disponibilidad... no está claro por qué pero en Game.Web.Business.Product.CnCStoreAvailabilityData
+              switch (AvailabilityCode)
+            {
+                // No disponible
+                case "0": 
+                    return "3";
+                // Disponible
+                case "1":
+                    return "1";
+                // Disponible para envío
+                case "2":
+                    return "2";
+                // No se sabe y se considera no disponible
+                default:
+                    return "3";
+            }
+      
+      *** UnitPrice: 39.95,
+      Zip: "50004"              
+        */
+
+      var stores = typeof responseData.length === 'number' ? responseData : responseData.Stores;
+
+      if (!stores) return;
+
+      // Limpiar datos anteriores
+      this.map.class.clearMarkers();
+      this.list.control.clearStores();
+
+      stores.forEach(function (store, index, stores) {
+        var availability = store.Type || 'default',
+            // La disponibilidad (en click y recoger) la marca "type", que es una versión de "availabilityCode" y "availabilityCodeEnum" modificada... cambiar y usar "availabilityCode" supone tener que cambiar en enumerados, etc (y posibles incompatibilidades con otras vistas).
+        info = Object.assign({
+          address: store.Address || '',
+          availabilityCode: store.AvailabilityCode || '',
+          availabilityCodeEnum: store.AvailabilityCodeEnum || '',
+          code: store.Code || '',
+          department: store.Department || '',
+          latitude: store.Latitude || 0,
+          longitude: store.Longitude || 0,
+          name: store.Name || '',
+          price: store.Price || '',
+          sku: store.Sku || '', // Se sobreescribe con this.buyParams
+          town: store.Town || '',
+          type: store.Type || '',
+          unitPrice: store.UnitPrice || '',
+          zip: store.Zip || "--",
+          phone: (store.Telephone || '').toPhone(),
+          schedule: '', //store.Schedule || '<span class="text-muted">Horario no disponible</span>' // Horario de apertura y cierre
+          data: (store.IsOpen ? '' : '<b class="strong u-block text-danger">Cerrado por festivo</b>') + store.Data,
+          isOpen: store.IsOpen
+        }, this.buyParams),
+            html = this.storeParams.templates[availability].fastformat(info);
+
+        this.map.class.markers.push(this.map.class.createMarker(
+        // coords, title, data, imageUrl, size, infowindowContent, zIndex
+        // TODO: zIndex ni se está ni se le espera
+        { latitude: parseFloat(info.latitude), longitude: parseFloat(info.longitude) }, info.name, info, this.storeParams.images[availability], this.storeParams.images.size, html));
+
+        this.list.control.addStore('<li>' + html + '</li>');
+      }.bind(this));
+
+      this.map.class.loadMarkerCluster();
+      this.map.class.centerOnMarkerBounds();
+    };
+
+    StoresView.prototype.setControls = function (querySelectors) {
+      var self = this;
+      this.button = new Control(querySelectors.button, {});
+      this.wrapper = new Control(querySelectors.wrapper, {
+        hasScript: false,
+        getBootstrapEvent: function getBootstrapEvent(options) {
+          return this._init().hasClass('modal') ? 'shown.bs.modal' : 'shown.bs.collapse';
+        },
+        bootstrapTogglerMethod: function bootstrapTogglerMethod(options) {
+          return this._init().hasClass('modal') ? this._init().modal(options) : this._init().collapse(options);
+        }
+      });
+      this.map = {
+        control: new Control(querySelectors.map.map, {}),
+        locator: new Control(querySelectors.map.locator, {}),
+        input: new Control(querySelectors.map.input, {}),
+        button: new Control(querySelectors.map.button, {})
+      };
+      this.list = {
+        control: new Control(querySelectors.list.list, {
+          addStore: function addStore(html) {
+            this._init().append(html);
+          },
+          clearStores: function clearStores() {
+            this._init()[0].innerHtml = '';
+          },
+          filter: function filter(searchString) {
+            var match = new RegExp(searchString, 'ig'),
+                $el = this._init();
+            $el.find('li').each(function () {
+              this.classList.toggle('hide', !this.innerText.match(match));
+            });
+            self.list.advertise.toggleClass('hide', $el.find('li:not(.hide)').length !== 0);
+          }
+
+        }),
+        input: new Control(querySelectors.list.input, {}),
+        button: new Control(querySelectors.list.button, {}),
+        advertise: new Control(querySelectors.list.advertise, {})
+      };
+    };
+
+    StoresView.prototype.setParams = function (button) {
+      // Estos parámetros se los traslada el botón de "lanzamiento" al los internos del modal/colapsable, y sobreescriben la información del getStores
+      // ATENCIÓN: No tienen por qué ser todos los del dataset del botón, NO HAY QUE ASIGNAR TODOS LOS PARÁMETROS ENTRANTES PORQUE DESEMBOCARÍA EN ERROR
+      this.buyParams = {
+        sku: button.dataset.sku || '',
+        basketCode: button.dataset.basketCode || '',
+        sender: button.dataset.sender || '',
+        preorderid: button.dataset.preorderid || '',
+        locatorNumber: button.dataset.locatorNumber || '',
+        dataLink: button.dataset.dataLink || '',
+        recordId: button.dataset.recordId || ''
+      };
+    };
+
+    StoresView.prototype.bindEvents = function (storeParams) {
+      if (typeof this.bindEventsDone === 'undefined') {
+
+        // Botón de inicialización
+        __$document.on('click', this.button.selector, function (event) {
+          this.button._init().trigger('storeview.updateallparams');
+          this.showWrapper();
+        }.bind(this));
+
+        // Botón de inicialización
+        __$document.on('storeview.updateallparams', this.button.selector, function (event) {
+          this.setParams(event.currentTarget);
+          this.setTemplates(storeParams);
+        }.bind(this));
+
+        // Contenedor (colapsable o modal)
+        __$document.on(this.wrapper.getBootstrapEvent(), this.wrapper.selector, this.build.bind(this));
+
+        // Tabs
+        __$document.on('shown.bs.tab', 'a[href=\'' + this.map.control.selector + '-tab\']', this.build.bind(this));
+
+        // Eventos del mapa: Buscar y localizar
+        __$document.on('keydown', this.map.input.selector, function (event) {
+          event.stopPropagation();
+        });
+        __$document.on('keyup', this.map.input.selector, function (event) {
+          if (event.which === 13) {
+            event.stopPropagation();
+            this.mapSearch();
+            return false;
+          }
+        }.bind(this));
+        __$document.on('click', this.map.button.selector, this.mapSearch.bind(this));
+
+        // Eventos del listado: Filtrar por búsqueda
+        __$document.on('keydown', this.list.input.selector, function (event) {
+          event.stopPropagation();
+        });
+        __$document.on('keyup', this.list.input.selector, function (event) {
+          this.list.control.filter(this.list.input._init().val());
+        }.bind(this));
+        __$document.on('click', this.list.button.selector, function (event) {
+          event.stopPropagation();
+          this.list.control.filter(this.list.input._init().val());
+        }.bind(this));
+
+        // Eventos de cierre de modal (en una posible futura unificación, sería conveniente cerrar el modal como multireserva y members)
+        __$document.on('addItemsDone', '.buy-button', function (event) {
+          if (this.wrapper._init().hasClass("in")) this.wrapper.bootstrapTogglerMethod('hide');
+        }.bind(this));
+
+        this.bindEventsDone = true;
+      }
+    };
+
+    StoresView.prototype.mapSearch = function () {
+      if (!this.map.input.isValid()) game.ui.alerts.add("¡Debes introducir una búsqueda!", "warning");else this.map.class.search(this.map.input.val());
+    };
+
+    StoresView.prototype.setTemplates = function (storeParams) {
+      var _templates, _images;
+
+      // Asignamos parámetros por defecto por si no se aportan como argumento
+      this.storeParams = Object.assign({
+        templates: (_templates = {
+          // En el template se mantiene code y shop-code por compatibilidad con click y recoger
+          default: '<article class="modal-shoppreorders-stores-item stores-item {{colorClass}}">\n                        <div>\n                          <h5>{{town}} - {{department}}</h5>\n                          <h4>{{name}}</h4>\n                          <p>Direcci\xF3n: {{address}}<br />CP: {{zip}} - Tel\xE9fono: {{phone}}</p> \n                          <p>{{data}}</p>\n                        </div>\n                        <div>\n                          {{storeTypeOption}}\n                          <button type="button"\n                            data-sku="{{sku}}"\n                            data-sender="{{sender}}"\n                            data-basket-code="{{basketCode}}"\n                            data-preorderid="{{preorderid}}"\n                            data-code="{{code}}"\n                            data-store-code="{{code}}"\n                            data-latitude="{{latitude}}"\n                            data-longitude="{{longitude}}"\n                            class="btn btn-primary btn-smd buy-button"><span class="cm-txt">Reservar</span></button>\n                        </div>\n                      </article>'
+        }, _defineProperty(_templates, game.enums.storePickAndClickStatus.all, false), _defineProperty(_templates, game.enums.storePickAndClickStatus.ready, false), _defineProperty(_templates, game.enums.storePickAndClickStatus.ship, false), _defineProperty(_templates, game.enums.storePickAndClickStatus.notReady, false), _templates),
+        images: (_images = {
+          size: { width: 66, height: 51 },
+          default: "/Content/img/map/markerWhite.png"
+        }, _defineProperty(_images, game.enums.storePickAndClickStatus.all, "/Content/img/map/markerWhite.png"), _defineProperty(_images, game.enums.storePickAndClickStatus.ready, "/Content/img/map/icon-disponible-maps.png"), _defineProperty(_images, game.enums.storePickAndClickStatus.ship, "/Content/img/map/icon-disponible-envio-maps.png"), _defineProperty(_images, game.enums.storePickAndClickStatus.notReady, "/Content/img/map/icon-no-disponible-maps.png"), _images)
+      }, storeParams || {});
+
+      // Personalizaciones de los templates para los estados de click y recoger (disponible o no en cada tienda).
+      // Se pone aparte por el fastFormat
+      this.storeParams.templates['default'] = this.storeParams.templates.default.replace("{{storeTypeOption}}", "");
+      this.storeParams.templates[game.enums.storePickAndClickStatus.all] = this.storeParams.templates[game.enums.storePickAndClickStatus.all] || this.storeParams.templates.default.replace("{{storeTypeOption}}", "");
+      this.storeParams.templates[game.enums.storePickAndClickStatus.ready] = this.storeParams.templates[game.enums.storePickAndClickStatus.ready] || this.storeParams.templates.default.replace("{{storeTypeOption}}", '<p class="text-success"><span class="iconGame mdi-check"></span>Disponible</p>');
+      this.storeParams.templates[game.enums.storePickAndClickStatus.ship] = this.storeParams.templates[game.enums.storePickAndClickStatus.ship] || this.storeParams.templates.default.replace("{{storeTypeOption}}", '<p class="text-warning"><span class="iconGame mdi-check"></span>Disponible para env\xEDo a tienda</p>');
+      this.storeParams.templates[game.enums.storePickAndClickStatus.notReady] = this.storeParams.templates[game.enums.storePickAndClickStatus.notReady] || this.storeParams.templates.default.replace("{{storeTypeOption}}", '<p class="text-danger">No disponible</p>');
+    };
+
+    StoresView.prototype.showWrapper = function () {
+      if (!game.login.isAutenticathed) {
+        game.login.showLogin(game.enums.callBackActionType.showPreordersModal);
+      } else this.wrapper.bootstrapTogglerMethod('toggle');
+    };
+
+    return StoresView;
+  }(),
+
+
+  /** @typedef {object} Module
+   * @property {function} enabled habilita o desabilita el modulo
+   * @property {function} showGeoLocationError muestra un error si la geolocalización de usuario no funciona
+   * @property {function} hide oculta el módulo
+   * @property {function} show muestra el módulo
+   */
+
+  /// <var type="Module" name="activeModule"></var>
+  activeModule = null,
+      txtSearch = new Control("#txtSearch"),
+      btnSearch = new Control("#btnSearch"),
+
+
+  // Reservas en tienda
+
+  // Click&Pick
+  ClickAndPick = function ClickAndPick() {
+    var modalClickAndPick = new Control("#modalGameClickPickup", {
+      hasScript: false,
+      modal: function modal(options) {
+        return this._init().modal(options);
+      }
+    }),
+        filters = function () {
+      var clickAndPickFilters = new Control("#clickAndPickFilters"),
+          btnClickAndCollectList = new Control("#btnClickAndCollectList"),
+          btnClickAndCollectMap = new Control("#btnClickAndCollectMap"),
+          btnClickAndCollectLocateMe = new Control("#btnClickAndCollectLocateMe"),
+          btnClickAndCollectListEnabled = true,
+          enabled = function enabled(value) {
+        btnClickAndCollectLocateMe.enabled(value);
+        btnClickAndCollectList.enabled(value && btnClickAndCollectListEnabled);
+        btnClickAndCollectMap.enabled(value && !btnClickAndCollectListEnabled);
+      },
+          showGeoLocationError = function showGeoLocationError(error) {
+        game.ui.alerts.add(error, "warning");
+      };
+
+      __$document.on('click', btnClickAndCollectLocateMe.selector, getNavigatorGeolocation);
+
+      __$document.on('click', btnClickAndCollectList.selector + ', ' + btnClickAndCollectMap.selector, function (e) {
+        /// <param type="Event" name="e"></param>
+        btnClickAndCollectListEnabled = e.currentTarget.id !== 'btnClickAndCollectList';
+        enabled(true);
+
+        if (!btnClickAndCollectListEnabled) {
+          clickAndPickFilters.slideUp({ duration: 200 });
+          mapa.fadeOut({ duration: 200, complete: function complete() {
+              storeList.fadeIn({ duration: 200 });
+            } });
+        } else {
+          storeList.fadeOut({
+            duration: 200, complete: function complete() {
+              clickAndPickFilters.slideDown({ duration: 200 });
+              mapa.fadeIn({ duration: 200 });
+            }
+          });
+        }
+      });
+
+      return {
+        enabled: enabled,
+        showGeoLocationError: showGeoLocationError
+      };
+    }(),
+        modalConfirmReserve = function () {
+      var modalPickAndCollectConfirm = new Control("#modalGameClickPickupConfirm", {
+        modal: function modal(options) {
+          return this._init().modal(options);
+        },
+        html: function html(_html) {
+          this._init().find('.modal-body').html(_html);
+        }
+      }),
+          hide = function hide() {
+        modalPickAndCollectConfirm.modal('hide');
+      },
+          loadAndShow = function loadAndShow(html) {
+        modalPickAndCollectConfirm.html(html);
+        modalPickAndCollectConfirm.modal('show');
+      },
+          reserveProduct = function reserveProduct(code, latitude, longitude) {
+        var loadingStoresReseverInProgressLabel = "Reservando producto...";
+
+        showLoadingStores(true, loadingStoresReseverInProgressLabel);
+
+        game.api.stores.reserveClickAndCollectStock(config.sku, code, latitude, longitude, config.basketCode, {
+          errorenum: game.enums.clickAndCollectResponses,
+          done: {
+            notAuthenticated: function notAuthenticated() {
+              close();
+              game.login.showLogin(code, latitude, longitude, game.enums.callBackActionType.clickAndCollectReserveProduct);
+            },
+            success: function success(response) {
+              close();
+              modalConfirmReserve.loadAndShow(response.MicrositeHtml);
+            },
+            notCustomer: function notCustomer() {
+              game.ui.alerts.add("Debes ser socio o haber realizado una \n compra web, para poder utilizar este servicio.", "warning");
+            },
+            error: function error() /*response*/{
+              //var message = game.enums.clicknCollectStatusErrorResponsesValues[response.ClickErrorResponses];
+              game.ui.alerts.add("Error clic y recoger.", "warning");
+            }
+          },
+          fail: function fail() {
+            game.ui.alerts.add("Error interno de clic y recoger. Inténtelo más tarde.", "warning");
+          },
+          always: function always() {
+            showLoadingStores(false);
+          }
+        });
+      };
+
+      __$document.on('click', '.do-reserve', function (e) {
+        var target = e.currentTarget,
+            data = target.dataset,
+            code = data.code,
+            latitude = data.latitude,
+            longitude = data.longitude;
+        reserveProduct(code, latitude, longitude);
+      });
+
+      return {
+        hide: hide,
+        loadAndShow: loadAndShow,
+        reserveProduct: reserveProduct
+      };
+    }(),
+        modalCancelReserve = function () {
+      var modalGameClickPickupCancel = new Control("#modalGameClickPickupCancel", {
+        modal: function modal(options) {
+          return this._init().modal(options);
+        }
+      }),
+          btnCancelClicAndCollect = new Control("#btnCancelClicAndCollect"),
+          show = function show() {
+        modalGameClickPickupCancel.modal("show");
+      },
+          hide = function hide() {
+        modalGameClickPickupCancel.modal("hide");
+      },
+          notify = function notify(text /*, options*/) {
+        game.ui.alerts.add(text, "warning");
+      },
+          config = {
+        locatorNumber: null,
+        storeCode: null
+      },
+
+
+      /**                
+      * Cancela una reserva de click y recoger
+      * @param {Number} locatorNumber Localizador de la reserva
+      */
+      cancelReserve = function cancelReserve() {
+        game.api.stores.cancelClickAndCollectReserve(config.locatorNumber, config.storeCode, {
+          errorenum: game.enums.clickAndCollectResponses,
+          done: {
+            success: function success() {
+              close();
+              modalGameClickPickupCancel.modal("show");
+            },
+            error: function error() /*response*/{
+              //var message = "Code:" + response.ErrorResponses;
+              game.ui.alerts.add("No se ha podido cancelar la reserva.", "warning");
+            }
+          }
+        });
+      };
+
+      __$document.on('click', btnCancelClicAndCollect.selector, cancelReserve);
+
+      return {
+        show: show,
+        hide: hide,
+        notify: notify,
+        init: function init(locatorNumber, storeCode) {
+          config.locatorNumber = locatorNumber;config.storeCode = storeCode;
+        }
+      };
+    }(),
+        storeList = function () {
+      var list = new Control("#listStores", {
+        append: function append(html) {
+          this._init().find('ul').append(html);
+        },
+        filter: function filter(searchString) {
+          var match = new RegExp(searchString, 'ig');
+          this._init().find('li').each(function () {
+            this.className = this.innerText.match(match) === null ? 'hide' : '';
+          });
+        }
+      }),
+          templateDetailsStoreList = "<li><div class='col-sm-9 col-xs-12 info-shop'><div class='{{colorClass}}'></div><span>{{town}} - {{department}}</span><p>{{name}}</p><span>Dirección: {{address}}<br></span><span>Teléfono: {{phone}}</span>-<span>Código Postal: {{zip}}</span><br><span>{{dataList}}</span><p>Precio en tienda: {{price}}€</p></div><div class='content-btn-reserves col-sm-3 col-xs-12'><span class='{{colorClass}}'><i class='fa fa-check'></i>Disponible</span><div class='btn-generic do-reserve' data-code='{{code}}' data-latitude='{{latitude}}' data-longitude='{{longitude}}'>Reservar</div></div></li>",
+          templateDetailsStoreListDisabled = "<li><div class='col-sm-9 col-xs-12 info-shop'><div class='{{colorClass}}'></div><span>{{town}} - {{department}}</span><p>{{name}}</p><span>Dirección: {{address}}<br></span><span>Teléfono: {{phone}}</span>-<span>Código Postal: {{zip}}</span><br><span>{{dataList}}</span><p>Precio en tienda: {{price}}€</p></div><div class='content-btn-reserves col-sm-3 col-xs-12'><span class='{{colorClass}}'><i class='fa fa-check'></i>Disponible</span><div class='btn-generic opacity-btn'>Reservar</div></div></li>",
+          availabilityOptions = {
+        1: { colorClass: "avaible-color", template: templateDetailsStoreList },
+        2: { colorClass: "avaible-color-shop", template: templateDetailsStoreList },
+        3: { colorClass: "disable-color", template: templateDetailsStoreListDisabled },
+        4: { colorClass: "disable-color", template: templateDetailsStoreListDisabled }
+      },
+          addStore = function addStore(availabilityCode, data) {
+        var availabilityOption = availabilityOptions[availabilityCode] || availabilityOptions[4];
+        data.colorClass = availabilityOption.colorClass;
+        list.append(availabilityOption.template.fastformat(data));
+      };
+
+      __$document.on('keydown', '#txtSearchList', function (e) {
+        e.stopPropagation();
+        return true;
+      });
+      __$document.on('keyup', '#txtSearchList', function (e) {
+        list.filter(this.value);
+        e.stopPropagation();
+        e.preventDefault();
+      });
+      return {
+        addStore: addStore,
+        fadeToggle: function fadeToggle(show, opts) {
+          list.fadeToggle(show, opts);
+        },
+        fadeIn: function fadeIn(opts) {
+          list.fadeIn(opts);
+        },
+        fadeOut: function fadeOut(opts) {
+          list.fadeOut(opts);
+        }
+      };
+    }(),
+
+
+    /// Oculta el formulario de clic y recoger
+    hide = function hide() {
+      modalClickAndPick.modal('hide');
+      modalConfirmReserve.hide();
+      modalCancelReserve.hide();
+    },
+        close = function close() {
+      hide();
+      enableKeyboardEvents(false);
+    },
+
+    /**
+    * Carga el stock en las tiendas en función del sku
+    */
+    loadClickAndCollectStock = function loadClickAndCollectStock() {
+      var loadingStoresStockLabel = "Búscando stock en tiendas...";
+
+      showLoadingStores(true, loadingStoresStockLabel);
+
+      /* enableTypeBuy(); //Determina si tiene que mostrar botones de desambiguación (nuevo/seminuevo) */
+
+      game.api.stores.getClickAndCollectStock(config.sku, config.basketCode, {
+        done: function done(response) {
+          switch (response.ErrorResponses) {
+            case game.enums.clickAndCollectResponses.notAuthenticated:
+              if (game.login.isAutenticathed) game.login.resetSession(true);
+              game.ui.alerts.add("Es necesario que inicies sesión para utilizar este servicio", "warning");
+              game.login.showLogin(config.sku, config.basketCode, game.enums.callBackActionType.clickAndCollect);
+              return;
+            case game.enums.clickAndCollectResponses.error:
+              game.ui.alerts.add("Ha ocurrido un error, inténtalo más tarde.", "warning");
+              game.login.showLogin(config.sku, config.basketCode, game.enums.callBackActionType.clickAndCollect);
+              return;
+            case game.enums.clickAndCollectResponses.noStock:
+              game.ui.alerts.add("No hay stock del producto seleccionado.", "warning");
+              return;
+            case game.enums.clickAndCollectResponses.notCustomer:
+              game.ui.alerts.add("Ha ocurrido un error, inténtalo más tarde.", "warning");
+              return;
+            case game.enums.clickAndCollectResponses.skuInvalid:
+              game.ui.alerts.add("El producto no es válido.", "warning");
+              return;
+            case game.enums.clickAndCollectResponses.success:
+              // Continua
+              break;
+            default:
+              // Continua
+              break;
+          }
+          populateStores(response.Stores, !status.userPosition);
+        },
+        always: function always() {
+          showLoadingStores(false);
+        }
+      });
+    },
+
+    /**
+    * Muestra la ventana de click y recoger
+    * @param {String} sku - El sku del producto
+    * @param {String} basketCode - basket code para este tipo de producto [Optional]
+    */
+    loadAndShow = function loadAndShow(sku, basketCode) {
+      enableKeyboardEvents(true);
+
+      modalClickAndPick.modal('show');
+
+      if (!config.sku) {
+        config.sku = sku;
+        config.basketCode = basketCode;
+      }
+    },
+        enabled = function enabled(_enabled) {
+      filters.enabled(_enabled);
+    },
+        showGeoLocationError = function showGeoLocationError() {
+      filters.showGeoLocationError();
+    };
+
+    __$document.on('click', "#btnCloseModalCancelReserve", hide);
+    __$document.on('click', "#btnClickAndCollect", function (evt) {
+
+      var data = evt.currentTarget.dataset,
+          sku = data.ccSku,
+          basketCode = data.ccSkuBasketCode;
+
+      if (game.login.isAutenticathed) {
+        loadAndShow(sku, basketCode);
+      } else {
+        game.login.showLogin(sku, basketCode, game.enums.callBackActionType.clickAndCollect);
+      }
+    });
+    __$document.on('click', "#btnModalGameClickPickupClose", close);
+    __$document.on('shown.bs.modal', modalClickAndPick.selector, function () {
+      if (!modalClickAndPick.hasScript) {
+        modalClickAndPick.hasScript = true;
+        mapa.init(config.googleApiKey, function () {
+          //Carga el sku 
+          loadClickAndCollectStock(config.sku, config.basketCode);
+        });
+      }
+      __body.addClass('modal-open');
+    });
+    __$document.on('hide.bs.modal', modalClickAndPick.selector, function () {
+      __body.removeClass('modal-open');
+    });
+
+    return {
+      enabled: enabled,
+      showGeoLocationError: showGeoLocationError,
+      show: loadAndShow,
+      reserveProduct: modalConfirmReserve.reserveProduct,
+      storeList: storeList,
+      initCancelReserve: modalCancelReserve.init,
+      close: close
+    };
+  },
+      Stores = function Stores() {
+    var btnStoresSectionLocateMe = new Control("#btnStoresSectionLocateMe"),
+        enabled = function enabled(_enabled2) {
+      btnStoresSectionLocateMe.enabled(_enabled2);
+    },
+        showGeoLocationError = function showGeoLocationError(error) {
+      game.ui.alerts.add(error, "warning");
+    },
+
+
+    /**
+    * Carga las tiendas disponibles
+    * @param {String} postalPrefix Código postal para filtrar
+    * @param {Function} qUnitCallback - Callback para test qUnit
+    */
+    loadStores = function loadStores() {
+      var loadingStoresLabel = "Cargando tiendas...";
+
+      showLoadingStores(true, loadingStoresLabel);
+
+      game.api.stores.getStores({
+        done: function done(response) {
+          if (response) populateStores(response, true);
+          showLoadingStores(false);
+        }
+      });
+    };
+
+    __$document.on('click', btnStoresSectionLocateMe.selector, getNavigatorGeolocation);
+
+    return {
+      enabled: enabled,
+      showGeoLocationError: showGeoLocationError,
+      init: function init() {
+        mapa.init(config.googleApiKey, loadStores);
+      }
+    };
+  },
+      config = {
+    googleApiKey: null,
+    /// Si está en modo click and pick
+    clickAndPick: false,
+    /// sku del producto
+    sku: null,
+    /// basketCode de producto
+    basketCode: null,
+
+    maxDistanceToSearchStockInKilometers: 50,
+    autoOpenBestStore: false,
+    distanceWhenIsBetterShipThanAvailable: 20
+  },
+      status = {
+    keyboardEventsEnabled: false,
+    /// <field>Posición del usuario</field>
+    userPosition: null,
+    /// Si abrir un infowindow tras cargar los markers
+    needToOpenInfoWindowAfterLoadMarkers: false,
+
+    selectedMarkerForInfoWindow: null,
+
+    /// Si necesita buscar la tienda más cercana al finalizar un LoadStockInProgress
+    pendingSearchNearStore: null,
+    /// Si hay una búsqueda de stock en progreso
+    loadStockInProgress: false
+  },
+      userLocationMarker,
+
+
+  /**
+  * Objeto que alamacena el marker de geoposicion
+  */
+  geocodingMarker = null,
+
+
+  /**
+  * Opciones de navegación para geolocalizacion
+  */
+  navigatorGeolocationOptions = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  },
+
+
+  /* 
+  * Habilita los eventos del teclado (el enter en búsquedas)
+  * @param {Boolean} enable Habilita los eventos del teclado (true|false)
+  */
+  enableKeyboardEvents = function enableKeyboardEvents(enable) {
+    game.search.enableKeyboardEvents(!enable);
+    status.keyboardEventsEnabled = enable;
+  },
+      markers = [],
+      mapa = function () {
+    var mapStores = new Control("#mapStores"),
+        map = null,
+
+
+    /// <var type="MarkerClusterer"></var>
+    markerCluster = null,
+        config = {
+      /// <field name="longitude" type="Number"></field>
+      longitude: -4,
+      /// <field name="latitude" type="Number"></field>
+      latitude: 38,
+      /// <field name="zoom" type="Number"></field>
+      zoom: 5
+    },
+
+
+    /**
+    * Mapa google clustered
+    * @type {object}
+    */
+
+    resize = function resize() {
+      var center = map.getCenter();
+      google.maps.event.trigger(map, "resize");
+      map.setCenter(center);
+    },
+        fitBounds = function fitBounds(latitude, longitude) {
+      var bounds = latitude.getCenter ? latitude : new google.maps.LatLngBounds();
+
+      if (!latitude.getCenter) {
+        if (!$.isArray(latitude)) {
+          latitude = [{ latitude: latitude, longitude: longitude }];
+        }
+
+        latitude.forEach(function (coords) {
+          var position = createPosition(coords);
+          bounds.extend(position);
+        });
+      }
+      map.fitBounds(bounds);
+
+      //google.maps.event.trigger(status.selectedMarkerForInfoWindow, 'click');
+    },
+        createPosition = function createPosition(coords) {
+      try {
+        return coords.latitude !== undefined ? new google.maps.LatLng(coords.latitude, coords.longitude) : coords;
+      } catch (ex) {
+        return;
+      }
+    },
+        setCenter = function setCenter(coords) {
+      var position = createPosition(coords);
+      map.setCenter(position);
+    },
+        setZoom = function setZoom(zoom) {
+      map.setZoom(Math.max(zoom || 0, config.zoom));
+    },
+        createMarker = function createMarker(coords, title, data, imageUrl, size, infowindowContent, zIndex) {
+      var icon = imageUrl ? new google.maps.MarkerImage(imageUrl, new google.maps.Size(size.width, size.height)) : undefined,
+          position = createPosition(coords),
+          marker = new google.maps.Marker({ position: position, map: map, title: title, icon: icon, zIndex: zIndex, data: data }),
+          infowindow = infowindowContent ? new google.maps.InfoWindow({ content: infowindowContent }) : undefined;
+
+      if (infowindow) {
+        marker.addListener('click', function () {
+          infowindow.open(map, marker);
+        });
+      }
+      return marker;
+    },
+        loadMarkerCluster = function loadMarkerCluster() {
+      if (markerCluster) {
+        try {
+          markerCluster.addMarkers(markers);
+        } catch (ex) {
+          return;
+        }
+      } else {
+        //Sin clustering
+        if (markers) {
+          markers.forEach(function (marker) {
+            marker.setMap(map);
+          });
+        }
+      }
+    },
+        loadScript = function loadScript(src, callback) {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      if (callback) script.onload = callback;
+      document.getElementsByTagName("head")[0].appendChild(script);
+      script.src = src;
+    },
+        init = function init(googleApiKey, callback) {
+      loadScript('https://maps.googleapis.com/maps/api/js?v=3.exp&key=' + googleApiKey + '&callback=googleMapsInit');
+      window.googleMapsInit = function () {
+        var mapOptions = {
+          zoom: config.zoom,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          center: new google.maps.LatLng(config.latitude, config.longitude)
+        },
+            mcOptions = {
+          /// Tamaño del grid para el cluster de tiendas
+          gridSize: 50,
+          /// Nivel máximo al que se realiza el clustering
+          maxZoom: 15,
+          /// Indica si el modo click and collect está activo
+          clickAndCollectMode: config.clickAndPick
+        };
+
+        //set style options for marker clusters (these are the default styles)
+        map = new google.maps.Map(mapStores._init().get(0), mapOptions);
+
+        // Limit the zoom level
+        map.addListener('zoom_changed', function () {
+          if (map.getZoom() < config.zoom) map.setZoom(config.zoom);
+        });
+
+        //google.maps.event.addListener(map, 'idle', function () { setTimeout(function () { markerCluster.redraw(); }, 1000); });
+
+        var setClusterImages = function setClusterImages() {
+          markerCluster.clusters_.forEach(function (cluster) {
+            if (cluster.markers_.find(function (marker) {
+              return +marker.data.availabilityCode === 1;
+            })) {
+              cluster.clusterIcon_.url_ = '/content/img/map/m2-green.png';
+              if (cluster.clusterIcon_.div_) cluster.clusterIcon_.div_.style.backgroundImage = 'url("/content/img/map/m2-green.png")';
+            } else if (cluster.markers_.find(function (marker) {
+              return +marker.data.availabilityCode === 2;
+            })) {
+              cluster.clusterIcon_.url_ = '/content/img/map/m2-yellow.png';
+              if (cluster.clusterIcon_.div_) cluster.clusterIcon_.div_.style.backgroundImage = 'url("/content/img/map/m2-yellow.png")';
+            } else if (cluster.markers_.find(function (marker) {
+              return +marker.data.availabilityCode === 0;
+            })) {
+              cluster.clusterIcon_.url_ = '/content/img/map/m2-red.png';
+              if (cluster.clusterIcon_.div_) cluster.clusterIcon_.div_.style.backgroundImage = 'url("/content/img/map/m2-red.png")';
+            }
+          });
+        };
+
+        markerCluster = new MarkerClusterer(map, [], mcOptions);
+
+        markerCluster.addListener('clusteringend', function () {
+          openInfoWindowByMarker();
+          showLoadingStores(false, "");
+          setClusterImages();
+        });
+
+        markerCluster.addListener('clusterclick', setClusterImages);
+
+        var center = new google.maps.LatLng(config.latitude, config.longitude);
+
+        map.setCenter(center);
+
+        google.maps.event.addDomListener(window, 'resize', resize);
+
+        if (typeof callback === 'function') callback.apply(this);
+
+        //NO BORRAR
+        //google.maps.event.addListener(map, 'click', function (pos) {
+        //	var centerLatLon = map.getCenter();
+        //	//Geocoding inverso no borrar
+        //	$.ajax({
+        //		url: "http://maps.googleapis.com/maps/api/geocode/json?latlng=" + centerLatLon.lat() + "," + centerLatLon.lng() + "&sensor=true",
+        //		type: "POST"
+        //	});
+        //});
+      };
+    },
+
+
+    /**
+    * Realiza el geocoding contra el API de google maps
+    * @param {String} address dirección a localizar
+    * @param {Object} callbacks 
+    *                 ok: función que se ejecuta cuando se localiza correctamente la dirección,
+    *                 error: función que se ejecuta cuando no se localiza correctamente la dirección,
+    *                 always: función que se ejecuta sin importar si se localiza o no la dirección
+    */
+    geocoding = function geocoding(address, callbacks) {
+      var geocoder = new google.maps.Geocoder();
+
+      geocoder.geocode({
+        'address': address,
+        "componentRestrictions": { "country": "ES" }
+      }, function (results, status) {
+        if (status === google.maps.GeocoderStatus.OK) {
+          callbacks.ok.apply(this, results);
+        } else {
+          callbacks.error.apply(this, results);
+        }
+        callbacks.always.apply(this);
+      });
+    },
+        clearMarkers = function clearMarkers() {
+      if (markerCluster) {
+        markerCluster.clearMarkers();
+      }
+
+      if (!markers) return;
+
+      markers.forEach(function (marker) {
+        marker.setMap(null);
+      });
+      markers = [];
+    },
+
+
+    /**
+    * Centra el mapa entre todos los markers existentes 
+    */
+    centerOnMarkerBounds = function centerOnMarkerBounds() {
+      try {
+        if (markers && markers[0]) {
+          var bounds = markers.map(function (marker) {
+            return { latitude: marker.data.latitude, longitude: marker.data.longitude };
+          });
+          fitBounds(bounds);
+        }
+      } catch (ex) {
+        return;
+      }
+    };
+
+    return {
+      fitBounds: fitBounds,
+      setCenter: setCenter,
+      setZoom: setZoom,
+      createMarker: createMarker,
+      loadMarkerCluster: loadMarkerCluster,
+      init: init,
+      geocoding: geocoding,
+      notify: function notify(text /*, options*/) {
+        game.ui.alerts.add(text, "warning");
+      },
+      fadeToggle: function fadeToggle(show, opts) {
+        mapStores.fadeToggle(show, opts);
+      },
+      fadeIn: function fadeIn(opts) {
+        mapStores.fadeIn(opts);
+      },
+      fadeOut: function fadeOut(opts) {
+        mapStores.fadeOut(opts);
+      },
+      clearMarkers: clearMarkers,
+      centerOnMarkerBounds: centerOnMarkerBounds
+    };
+  }(),
+
+
+  /**
+  * Abre la ventana de información en función del código de tienda.
+  */
+  openInfoWindowByMarker = function openInfoWindowByMarker() {
+    if (!status.needToOpenInfoWindowAfterLoadMarkers || !status.selectedMarkerForInfoWindow) return;
+
+    mapa.fitBounds(status.selectedMarkerForInfoWindow.data.latitude, status.selectedMarkerForInfoWindow.data.longitude);
+
+    status.needToOpenInfoWindowAfterLoadMarkers = false;
+    status.selectedMarkerForInfoWindow = null;
+  },
+
+
+  /**
+  * Realiza la búsqueda de la tienda más cercana a la posición
+  */
+  performSearchNearAvailableStore = function performSearchNearAvailableStore() {
+    var loadingClickAndCollectStoresLabel = "Localizando la tienda m&aacute;s cercana a tu posici&oacute;n con producto disponible";
+
+    status.pendingSearchNearStore = false;
+    showLoadingStores(true, loadingClickAndCollectStoresLabel); // Atención porque aquí se inicia un bucle que sólo termina status.pendingSearchNearStore
+
+    status.selectedMarkerForInfoWindow = null;
+    status.needToOpenInfoWindowAfterLoadMarkers = false;
+
+    if (!markers.length || !status.userPosition && !geocodingMarker) return;
+
+    var longitude = geocodingMarker ? geocodingMarker.getPosition().lng() : status.userPosition.coords.longitude,
+        latitude = geocodingMarker ? geocodingMarker.getPosition().lat() : status.userPosition.coords.latitude,
+        bestMarker = {},
+        recoger = game.enums.storePickAndClickStatus.ready,
+        envio = game.enums.storePickAndClickStatus.ship;
+
+    bestMarker[recoger] = { distance: config.maxDistanceToSearchStockInKilometers, marker: null };
+    bestMarker[envio] = { distance: config.maxDistanceToSearchStockInKilometers, marker: null };
+
+    markers.forEach(function (marker) {
+      try {
+        if (marker.data.type === game.enums.storePickAndClickStatus.notReady) return;else {
+          var distance = getDistancePoints(longitude, latitude, marker.data.longitude, marker.data.latitude);
+
+          if (distance < bestMarker[marker.data.type].distance) {
+            bestMarker[marker.data.type].distance = distance;
+            bestMarker[marker.data.type].marker = marker;
+          }
+        }
+      } catch (ex) {
+        return;
+      }
+    });
+
+    if (config.autoOpenBestStore) {
+      if (bestMarker[envio].marker && bestMarker[recoger].marker) {
+        var diferece = bestMarker[recoger].distance - bestMarker[envio].distance;
+        status.selectedMarkerForInfoWindow = bestMarker[diferece < 0 || diferece < config.distanceWhenIsBetterShipThanAvailable ? recoger : envio].marker;
+      } else {
+        status.selectedMarkerForInfoWindow = bestMarker[envio].marker || bestMarker[recoger].marker;
+      }
+      status.needToOpenInfoWindowAfterLoadMarkers = true;
+    } else {
+      var bounds = [];
+      if (geocodingMarker) bounds.push({ latitude: geocodingMarker.getPosition().lat(), longitude: geocodingMarker.getPosition().lng() });
+      if (status.userPosition) bounds.push(status.userPosition.coords);
+      if (bestMarker[envio]) bounds.push({ latitude: bestMarker[envio].data.latitude, longitude: bestMarker[envio].data.longitude });
+      if (bestMarker[recoger]) bounds.push({ latitude: bestMarker[recoger].data.latitude, longitude: bestMarker[recoger].data.longitude });
+
+      mapa.fitBounds(bounds);
+    }
+  },
+
+
+  /**
+  * Buscar stock en la tienda más cercana
+  */
+  searchNearAvailableStore = function searchNearAvailableStore() {
+    if (status.loadStockInProgress) {
+      status.pendingSearchNearStore = true; //Si necesita buscar la tienda más cercana al finalizar un LoadStockInProgress
+    } else {
+      //Si no hay en curso lanzamos la búsqueda
+      performSearchNearAvailableStore();
+    }
+  },
+      searchingNearStores = new Control("#searchingNearStores", { hideClass: 'hide' }),
+      loadingStoresMessage = new Control("#loadingStoresMessage"),
+
+  /**
+  * Muestra icono de cargando
+  * @param {Boolean} show Si se muestra o se oculta el mensaje
+  * @param {String} text El texto para remplazar el template
+  */
+  showLoadingStores = function showLoadingStores(show, text) {
+    //deshabilitamos botones de búsqueda
+    if (activeModule && typeof activeModule.enabled === 'function') activeModule.enabled(!show);
+    if (btnSearch && typeof btnSearch.enabled === 'function') btnSearch.enabled(!show);
+    if (searchingNearStores && typeof searchingNearStores.toggle === 'function') searchingNearStores.toggle(show);
+    if (status && typeof status.loadStockInProgress === 'function') status.loadStockInProgress = show;
+    if (loadingStoresMessage && typeof loadingStoresMessage.html === 'function') loadingStoresMessage.html(text || '');
+    if (!show && status.pendingSearchNearStore) performSearchNearAvailableStore();
+  },
+
+
+  /**
+  * Transformar a radianes
+  * @param {Number} x de grados a radianes
+  * @returns {Number} valor en radianes
+  */
+  rad = function rad(x) {
+    return x * Math.PI / 180;
+  },
+
+  /**
+  * Distancia entre dos puntos
+  * @param {Point} p1X Punto inicial longitud
+  * @param {Point} p1Y Punto inicial latitud
+  * @param {Point} p2X Punto final longitud
+  * @param {Point} p2Y Punto final latitud
+  * @returns {Number} Distancia en km (2 decimales)
+  */
+  getDistancePoints = function getDistancePoints(p1X, p1Y, p2X, p2Y) {
+    try {
+      var r = 6378137,
+          // Radio de la tierra
+      dLat = rad(p2Y - p1Y),
+          dLong = rad(p1X - p2X),
+          a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(rad(p1Y)) * Math.cos(rad(p2Y)) * Math.pow(Math.sin(dLong / 2), 2),
+          c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)),
+          d = r * c;
+
+      return Math.floor10(d / 1000, -2); // Distancia en km con dos decimales
+    } catch (ex) {
+      return NaN;
+    }
+  },
+
+
+  /**
+  * Si recuperar la posición de usuario
+  * @param {Position} position Posicion del usuario
+  */
+  getNavigatorGeolocationOnSucess = function getNavigatorGeolocationOnSucess(position) {
+    var markerImageUserPositionPath = basePath + "/Content/img/map/icon-lugar-user-maps.png";
+
+    status.userPosition = position;
+
+    //Eliminamos la marca de geoposición
+    if (geocodingMarker) {
+      geocodingMarker.setMap(null);
+      geocodingMarker = null;
+    }
+
+    mapa.setCenter(position.coords);
+    userLocationMarker = mapa.createMarker(position.coords, "¡Estás aquí!", null, markerImageUserPositionPath, { width: 33, height: 52 }, "<div id='contentStores' class='noscrollbar'>Usted está aquí!</div>");
+
+    if (config.clickAndPick) searchNearAvailableStore();else mapa.setZoom(config.locatorZoom);
+
+    //else if (markers && markers[0] !== null) {
+    //  mapa.fitBounds([position.coords, markers[0].data]);
+    //}
+  },
+
+
+  /**
+  * No podemos recuperar la posición de usuario
+  * @param {Error} err Error al intentar determinar la posición del usuario
+  */
+  getNavigatorGeolocationOnError = function getNavigatorGeolocationOnError(err) {
+    // see: http://www.w3.org/TR/geolocation-API/#position_error_interface
+    var errors = ["No has dado permiso para determinar tu posición", "Tu navegador no ha podido determinar la posición", "Tu navegador no ha podido respondido en el tiempo solicitado"],
+        error = errors[err.code - 1] || errors[1];
+
+    activeModule.showGeoLocationError(error);
+  },
+
+
+  /**
+  * Obtiene la posición del usuario si está disponible y/o da permiso para conocerla
+  */
+  getNavigatorGeolocation = function getNavigatorGeolocation() {
+    if (!navigator || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(getNavigatorGeolocationOnSucess, getNavigatorGeolocationOnError, navigatorGeolocationOptions);
+  },
+
+
+  /**
+  * Carga las tiendas disponibles en el mapa
+  * @param {Json} response objeto Json con las tiendas para cargar
+  * @param {Boolean} changeZoom si debe ajustar los bounds al contenido tras cargar
+  */
+  populateStores = function populateStores(stores, changeZoom, storeListTemplate) {
+
+    mapa.clearMarkers();
+
+    var imageStoreSrc = basePath + "/Content/img/map/markerWhite.png";
+
+    if (!stores) return;
+
+    var // LISTADO: Creamos la variable donde construiremos el listado de tiendas
+    storeTypeOptions = function () {
+      var storeTypeOptions = {},
+          template = storeListTemplate || "<div id='contentStores' class='noscrollbar box-shop'>" + "  <p><strong>{{name}}</strong><span>Distancia {{distance}} km</span></p>" + "  <h1>{{department}} - {{town}}</h1>" + "  <p>Dirección: {{address}}</p>" + "  <p>Teléfono: {{phone}} - Código postal: {{zip}}</p>" + "  <p>{{data}}</p>" + "  <p class='price'>Precio en tienda: {{price}}€</p>" + "  {{storeTypeOption}}" + "</div>";
+      storeTypeOptions[game.enums.storePickAndClickStatus.ready] = {
+        imagesrc: basePath + "/Content/img/map/icon-disponible-maps.png",
+        template: template.replace("{{storeTypeOption}}", "<p class='available-unit'><i class='fa iconGame fa-check'></i>Disponible</p>" + "<button type='button' data-code='{{code}}' data-latitude='{{latitude}}' data-longitude='{{longitude}})' class='btn-generic do-reserve'>Reservar</button>")
+      };
+      storeTypeOptions[game.enums.storePickAndClickStatus.ship] = {
+        imagesrc: basePath + "/Content/img/map/icon-disponible-envio-maps.png",
+        template: template.replace("{{storeTypeOption}}", "<p class='available-send-unit'><i class='fa iconGame fa-clock-o'></i>Disponible para env&iacute;o a tienda</p>" + "<button type='button' data-code='{{code}}' data-latitude='{{latitude}}' data-longitude='{{longitude}})' class='btn-generic do-reserve'>Reservar</button>")
+      };
+      storeTypeOptions[game.enums.storePickAndClickStatus.notReady] = {
+        imagesrc: basePath + "/Content/img/map/icon-no-disponible-maps.png",
+        template: template.replace("{{storeTypeOption}}", "<p class='disable-unit'><i class='fa iconGame fa-times'></i>No disponible</p>")
+      };
+      return storeTypeOptions;
+    }(),
+        templateDetailStore = "<div id='contentStores' class='noscrollbar box-shop'><p><strong>{{name}}</strong><span>Distancia {{distance}} km</span></p><h1>{{department}} - {{town}}</h1><p>Dirección: {{address}}</p><p>Teléfono: {{phone}} - Código postal: {{zip}}</p><p>{{data}}</p></div>";
+
+    stores.forEach(function (store) {
+      var storeTypeOption = storeTypeOptions[store.Type],
+          imagesrc = config.clickAndPick ? storeTypeOption.imagesrc : imageStoreSrc,
+          content,
+          distance = "--",
+          data;
+
+      if (geocodingMarker) {
+        distance = getDistancePoints(geocodingMarker.getPosition().lng(), geocodingMarker.getPosition().lat(), store.Longitude, store.Latitude);
+      } else if (status.userPosition) {
+        distance = getDistancePoints(status.userPosition.coords.longitude, status.userPosition.coords.latitude, store.Longitude, store.Latitude);
+      }
+
+      data = {
+        address: store.Address,
+        availabilityCode: store.AvailabilityCode,
+        availabilityCodeEnum: store.AvailabilityCodeEnum,
+        code: store.Code,
+        department: store.Department || '',
+        latitude: store.Latitude,
+        longitude: store.Longitude,
+        name: store.Name || '',
+        price: store.Price,
+        sku: store.Sku,
+        town: store.Town || '',
+        type: store.Type,
+        unitPrice: store.UnitPrice,
+        zip: store.Zip || "--",
+        phone: (store.Telephone || '').toPhone(),
+        distance: distance,
+        schedule: '', //store.Schedule ? '<p>{{Schedule}}</p>'.fastformat(store) : '',
+        data: (store.IsOpen ? '' : '<b class="strong u-block text-danger">Cerrado por festivo</b>') + (store.Data || ''),
+        scheduleList: store.Schedule ? '<br><span>{{Schedule}}</span>'.fastformat(store) : '',
+        dataList: (store.IsOpen ? '' : '<b class="strong text-danger">Cerrado por festivo</b>&nbsp;&mdash;&nbsp;') + store.Data,
+        isOpen: store.IsOpen
+      };
+
+      if (config.clickAndPick) {
+        activeModule.storeList.addStore(store.AvailabilityCode, data);
+        content = storeTypeOption.template.fastformat(data);
+      } else {
+        content = templateDetailStore.fastformat(data);
+      }
+
+      markers.push(mapa.createMarker(data, data.name, data, imagesrc, { width: 66, height: 51 }, content));
+    });
+
+    mapa.centerOnMarkerBounds();
+
+    mapa.loadMarkerCluster();
+
+    if (changeZoom) mapa.centerOnMarkerBounds();
+  },
+
+
+  /**
+  * Inicialización de la clase Stores
+  * @param {String} googleApiKey Api de google maps
+  * @param {string} mode Si está en modo click and pick, reservas o stores
+  * @param {Number} maxDistanceToSearchStockInKilometers Máxima 
+  *                 distancia a la redonda para buscar stock en función de la posición del usuario
+  *                 En Kilómetros! 10 = 10km
+  * @param {Boolean} autoOpenBestStore Si abre la ventana de información de la mejor tienda encontrada
+  * @param {Number} distanceWhenIsBetterShipThanAvailable Decide apartir de que distancia (en km) es mejor una tienda para envío que para recoger	
+  * @example Si encontramos una tienda A para recoger a 10km  y una B para envío a tienda a 2km (hay 8km de diferencia) se decide
+  * por la de recoger aunque esté más cerca (hasta la distancia marcada en este parámetro, en cuyo caso la mejor sería la B)
+  */
+  init = function init(googleApiKey, mode, maxDistanceToSearchStockInKilometers, autoOpenBestStore, distanceWhenIsBetterShipThanAvailable) {
+    var _templates2, _templates3;
+
+    config.googleApiKey = googleApiKey;
+    config.maxDistanceToSearchStockInKilometers = maxDistanceToSearchStockInKilometers || config.maxDistanceToSearchStockInKilometers;
+    config.autoOpenBestStore = autoOpenBestStore !== undefined ? autoOpenBestStore : config.autoOpenBestStore;
+    config.distanceWhenIsBetterShipThanAvailable = distanceWhenIsBetterShipThanAvailable || config.distanceWhenIsBetterShipThanAvailable;
+    config.locatorZoom = 8;
+
+    switch (mode) {
+      case 'click':
+        config.clickAndPick = true;
+        activeModule = new ClickAndPick();
+        break;
+      case 'preorders':
+        config.preorder = true;
+        activeModule = new StoresView(googleApiKey, { // querySelectors
+          button: '#shoppreorders-button',
+          wrapper: '#shoppreorders-modal',
+          map: {
+            map: '#shoppreorders-modal-map',
+            locator: '#shoppreorders-modal-maplocator',
+            input: '#shoppreorders-modal-mapinput',
+            button: '#shoppreorders-modal-mapbutton'
+          },
+          list: {
+            list: '#shoppreorders-modal-list',
+            input: '#shoppreorders-modal-listinput',
+            button: '#shoppreorders-modal-listbutton',
+            advertise: '#shoppreorders-modal-listadvertise'
+          }
+        });
+        break;
+      case 'members':
+        activeModule = new StoresView(googleApiKey, { // querySelectors
+          button: '#preorders-change-collapse-toggler',
+          wrapper: '#preorders-change-collapse',
+
+          map: {
+            map: '#preorders-change-modal-map',
+            locator: '#preorders-change-modal-maplocator',
+            input: '#preorders-change-modal-mapinput',
+            button: '#preorders-change-modal-mapbutton'
+          },
+          list: {
+            list: '#preorders-change-modal-list',
+            input: '#preorders-change-modal-listinput',
+            button: '#preorders-change-modal-listbutton',
+            advertise: '#preorders-change-modal-listadvertise'
+          }
+        }, {
+          templates: (_templates2 = {
+            // En el template se mantiene code y shop-code por compatibilidad con click y recoger
+            default: '<article class="modal-shoppreorders-stores-item stores-item {{colorClass}}">\n                        <div>\n                          <h5>{{town}} - {{department}}</h5>\n                          <h4>{{name}}</h4>\n                          <p>Direcci\xF3n: {{address}}<br />CP: {{zip}} - Tel\xE9fono: {{phone}}</p>\n                          <p>{{data}}</p>\n                        </div>\n                        <div>\n                          {{storeTypeOption}}\n                          <button type="button"\n                            data-store-name="{{name}}"\n                            data-sku="{{sku}}"\n                            data-store-code="{{code}}"                                \n                            data-locator-number="{{locatorNumber}}"\n                            data-record-id="{{recordId}}"\n                            class="btn btn-primary btn-smd do-preorders-change-store"><span class="cm-txt align">Confirmar cambio</span></button>\n                        </div>\n                      </article>'
+          }, _defineProperty(_templates2, game.enums.storePickAndClickStatus.all, false), _defineProperty(_templates2, game.enums.storePickAndClickStatus.ready, false), _defineProperty(_templates2, game.enums.storePickAndClickStatus.ship, false), _defineProperty(_templates2, game.enums.storePickAndClickStatus.notReady, false), _templates2)
+        });
+        break;
+
+      case 'privatesale':
+        activeModule = new StoresView(googleApiKey, { // querySelectors
+          button: '#privatechange-collapse-toggler',
+          wrapper: '#privatechange-collapse',
+          map: {
+            map: '#privatechange-map',
+            locator: '#privatechange-maplocator',
+            input: '#privatechange-mapinput',
+            button: '#privatechange-mapbutton'
+          },
+          list: {
+            list: '#privatechange-list',
+            input: '#privatechange-listinput',
+            button: '#privatechange-listbutton',
+            advertise: '#privatechange-listadvertise'
+          }
+        }, {
+          templates: (_templates3 = {
+            // En el template se mantiene code y shop-code por compatibilidad con click y recoger
+            default: '<article class="modal-shoppreorders-stores-item stores-item {{colorClass}}">\n                          <div>\n                            <h5>{{town}} - {{department}}</h5>\n                            <h4>{{name}}</h4>\n                            <p>Direcci\xF3n: {{address}}<br />CP: {{zip}} - Tel\xE9fono: {{phone}}</p>\n                            <p>{{data}}</p>\n                          </div>\n                          <div>\n                            {{storeTypeOption}}\n                            <button type="button"\n                              data-sku="{{sku}}"\n                              data-sender="{{sender}}"\n                              data-basket-code="{{basketCode}}"\n                              data-data-link="{{dataLink}}"\n                              data-preorderid="{{preorderid}}"\n                              data-code="{{code}}"\n                              data-store-code="{{code}}"\n                              data-latitude="{{latitude}}"\n                              data-longitude="{{longitude}}"\n                              class="btn btn-primary btn-smd buy-button"><span class="cm-txt">Reservar</span></button>\n                          </div>\n                        </article>'
+          }, _defineProperty(_templates3, game.enums.storePickAndClickStatus.all, false), _defineProperty(_templates3, game.enums.storePickAndClickStatus.ready, false), _defineProperty(_templates3, game.enums.storePickAndClickStatus.ship, false), _defineProperty(_templates3, game.enums.storePickAndClickStatus.notReady, false), _templates3)
+        });
+        break;
+
+      default:
+        activeModule = new Stores();
+        break;
+    }
+
+    if (activeModule.init) activeModule.init();
+  },
+      loadingClickPick = new Control("#loadingClickPick"),
+      searchAddress = function searchAddress() {
+    if (!txtSearch.isValid()) {
+      game.ui.alerts.add("¡Debes introducir una búsqueda!", "warning");
+      return;
+    }
+
+    if (config.clickAndPick) loadingClickPick.toggleClass("hide show");
+
+    mapa.geocoding(txtSearch.val(), {
+      ok: function ok(result) {
+        //eliminamos el marker de posicion de usuario si existe
+        if (userLocationMarker) {
+          userLocationMarker.setMap(null);
+          status.userPosition = null;
+        }
+
+        //Eliminamos el marker de geoposición previo si existe
+        if (geocodingMarker) {
+          geocodingMarker.setMap(null);
+        }
+
+        //Creamos el marker
+        geocodingMarker = mapa.createMarker(result.geometry.location);
+
+        mapa.setCenter(result.geometry.location);
+
+        if (result.geometry.viewport) mapa.fitBounds(result.geometry.viewport);
+
+        if (config.clickAndPick) searchNearAvailableStore();
+      },
+      error: function error() {
+        game.ui.alerts.add("No se ha encontrado ningún resultado.", "warning");
+      },
+      always: function always() {
+        if (config.clickAndPick) loadingClickPick.toggleClass("hide show");
+      }
+    });
+  };
+
+  __$document.on('keydown', txtSearch.selector, function (e) {
+    if (e.which === 13) {
+      searchAddress();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  });
+
+  __$document.on('click', "#btnPrintClicAndCollect", function () {
+    //var locator = $('.summary-click-pickup span.ref').text();
+    game.navigation.redirectionTo(game.utils.getBasePath() + game.request.printReserveClickAndCollectStock() /*+'/'+locator*/);
+  });
+
+  __$document.on('click', btnSearch.selector, searchAddress);
+
+  /*__$window.keydown(function (e) {
+    if (e.keyCode !== 13 || !status.keyboardEventsEnabled) return true;
+    searchAddress();
+    e.preventDefault();
+    return false;
+  });*/
+
+  return {
+    closeModal: function closeModal() {
+      if (config.clickAndPick) activeModule.close();
+    },
+
+    showClickAndPick: function showClickAndPick(sku, skuPreonwed, basketCode) {
+      if (config.clickAndPick) activeModule.show(sku, skuPreonwed, basketCode);
+    },
+
+    reserveProduct: function reserveProduct() {
+      activeModule.reserveProduct();
+    },
+
+    init: init,
+
+    setCancelClickAndCollectValues: function setCancelClickAndCollectValues(locatorNumber, storeCode) {
+      activeModule.initCancelReserve(locatorNumber, storeCode);
+    },
+
+    showPreordersModal: function showPreordersModal() {
+      if (game.login.isAutenticathed) $('#shoppreorders-modal').modal('show');
+    }
+  };
+}();
+
+game.api.stores = function () {
+  var reserveClickAndCollectStock = function reserveClickAndCollectStock(sku, idStore, lat, lon, basketCode, deferredoptions, qunitcallback) {
+    var __RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val(),
+        ajaxoptions = {
+      url: game.utils.getBasePath() + game.request.reserveClickAndCollectStock(),
+      type: "POST",
+      //headers: game.api.getHeaders(),
+      //contentType: 'application/json; charset=utf-8',
+      data: { sku: sku, idStore: idStore, lat: lat, lon: lon, basketCode: basketCode, __RequestVerificationToken: __RequestVerificationToken }
+    };
+
+    return game.api.ajax(ajaxoptions, deferredoptions, qunitcallback);
+  },
+      getClickAndCollectStock = function getClickAndCollectStock(sku, basketCode, deferredoptions, qunitcallback) {
+    var ajaxoptions = { url: game.utils.getBasePath() + game.request.getClickAndCollectStock(), data: { sku: sku, basketCode: basketCode } };
+
+    return game.api.ajax(ajaxoptions, deferredoptions, qunitcallback);
+  },
+      getPreordersStores = function getPreordersStores(deferredoptions, qunitcallback) {
+    var ajaxoptions = { url: "/api/ApiStores/GetPreorderStores" };
+
+    return game.api.ajax(ajaxoptions, deferredoptions, qunitcallback);
+  },
+      cancelClickAndCollectReserve = function cancelClickAndCollectReserve(currentLocatorNumber, currentStoreCode, deferredoptions, qunitcallback) {
+    var __RequestVerificationToken = $('input[name="__RequestVerificationToken"]').val(),
+        ajaxoptions = {
+      url: game.utils.getBasePath() + game.request.cancelClickAndCollectReserve(currentLocatorNumber, currentStoreCode),
+      type: "POST",
+      //contentType: 'application/json; charset=utf-8'
+      data: { __RequestVerificationToken: __RequestVerificationToken }
+    };
+
+    return game.api.ajax(ajaxoptions, deferredoptions, qunitcallback);
+  },
+      getStores = function getStores(deferredoptions, qunitcallback) {
+    var ajaxoptions = { url: game.request.getStores() };
+
+    return game.api.ajax(ajaxoptions, deferredoptions, qunitcallback);
+  };
+
+  return {
+    reserveClickAndCollectStock: reserveClickAndCollectStock,
+    getPreordersStores: getPreordersStores,
+    getClickAndCollectStock: getClickAndCollectStock,
+    cancelClickAndCollectReserve: cancelClickAndCollectReserve,
+    getStores: getStores
+  };
+}();
