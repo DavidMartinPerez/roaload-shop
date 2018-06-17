@@ -12,8 +12,32 @@ $rowDatosPedido = mysqli_fetch_assoc($datosPedido);
 
 ?>
 <div class="row letra-roboco">
-    <h1>¡Resumen de tu Compra!</h1>
-    <h3>Localizador: <?=$localizador?></h3>
+    <?php
+        if($rowDatosPedido["idEstado"] == 1){
+            echo '<a class="btn" onclick="loRecibi(<?=$localizador?>)">¡Lo he recibido!</a>';
+        }
+        if($rowDatosPedido["idEstado"] == 2){
+            echo '<a class="btn" onclick="loRecibi(<?=$localizador?>)">¡Lo he recibido!</a>';
+        }
+    ?>
+    <div class="s12" style="margin-left: 10px">
+        <h1>¡Resumen de tu Compra!</h1>
+        <h3>Localizador: <?=$localizador?></h3>
+        <?php
+            if($rowDatosPedido["idEstado"] == 1){
+                echo '<h4 style="color: orange">Pendiente</h4>';
+            }
+            if($rowDatosPedido["idEstado"] == 2){
+                echo '<h4 style="color: orange">Pago y en espera de envio</h4>';
+            }
+            if($rowDatosPedido["idEstado"] == 3){
+                echo '<h4 style="color: green">Completado</h4>';
+            }
+            if($rowDatosPedido["idEstado"] == 4){
+                echo '<h4 style="color: red">Cancelado</h4>';
+            }
+        ?>
+    <div>
     <!-- Datos de la entrega -->
     <div class="col m8 s12">
         Fecha pedido: <?=$rowDatosPedido["fechaPedido"]?>
@@ -37,7 +61,7 @@ $rowDatosPedido = mysqli_fetch_assoc($datosPedido);
             if($rowDatosPedido["fechaFinPedido"] == null){
                 echo "---";
             }else{
-                $rowDatosPedido["fechaFinPedido"];
+                echo $rowDatosPedido["fechaFinPedido"];
             }
         ?>
         <ul class="collapsible">
@@ -57,30 +81,37 @@ $rowDatosPedido = mysqli_fetch_assoc($datosPedido);
             </li>
         </ul>
     </div>
+</div>
     <!-- productos-->
     <div class="row">
-        <table>
-            <tr>
-                <th>Juego</th>
-                <th>Edición</th>
-                <th>Plataforma</th>
-                <th>Precio Comprado!</th>
-                <th>Cantidad</th>
-                <th>Precio actual!!</th>
-            </tr>
-            <?php
-                while($row = mysqli_fetch_assoc($productos)){
-            ?>
+        <div class="s12">
+            <table class="letra-roboco container responsive-table striped">
                 <tr>
-                    <td><?=$row["nombreJuego"]?></td>
-                    <td><?=$row["nombreEdicion"]?></td>
-                    <td><?=$row["nombrePlataforma"]?></td>
-                    <td><?=$row["precio"]?></td>
-                    <td><?=$row["cantidad"]?></td>
-                    <td><?=$row["precio"]?></td>
+                    <th>Juego</th>
+                    <th>Edición</th>
+                    <th>Plataforma</th>
+                    <th>Precio Comprado!</th>
+                    <th>Cantidad</th>
+                    <th>Precio actual!!</th>
                 </tr>
-            <?php }
-            ?>
-        </table>
+                <?php
+                    $precio = 0;
+                    while($row = mysqli_fetch_assoc($productos)){
+                ?>
+                    <tr>
+                        <td><?=$row["nombreJuego"]?></td>
+                        <td><?=$row["nombreEdicion"]?></td>
+                        <td><?=$row["nombrePlataforma"]?></td>
+                        <td><?=$row["precio"]?></td>
+                        <td><?=$row["cantidad"]?></td>
+                        <td><?=$row["precio"]?></td>
+                    </tr>
+                <?php
+                        $precio = $precio+$row["precio"];
+                    }
+                ?>
+            </table>
+            <div style="text-align: right;margin-right: 196px;margin-top: 20px;font-size:24px; color: darkblue">Precio total: <?=$precio?></div>
+        </div>
     </div>
 </div>

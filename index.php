@@ -122,11 +122,11 @@
 								</div>
 							</div>
 						</li>
-						<li><a onclick="vistaPtl('todo')">Todos</a></li>
-						<li><a onclick="vistaPtl('nsw',2)">NSW</a></li>
-				        <li><a onclick="vistaPtl('ps4',2)">PS4</a></li>
-						<li><a onclick="vistaPtl('xone',2)">XO</a></li>
-						<li><a onclick="vistaPtl('pc',2)">PC</a></li>
+						<li><a onclick="vistaPtl('todo',16)">Todos</a></li>
+						<li><a onclick="vistaPtl('nsw',8)">NSW</a></li>
+				        <li><a onclick="vistaPtl('ps4',8)">PS4</a></li>
+						<li><a onclick="vistaPtl('xone',8)">XO</a></li>
+						<li><a onclick="vistaPtl('pc',8)">PC</a></li>
 						<li><a class="dropdown-button" href="#!" data-activates="dropdown1">Otros<i class="material-icons right">arrow_drop_down</i></a></li>
 						<li><a href="#" data-activates="slide-out" class="perfil-navbar"><i class="material-icons">person_pin</i></a></li>
 					</ul>
@@ -169,7 +169,7 @@
             <div class="row">
               <div class="col l6 s12">
                 <h5 class="white-text">Roaload</h5>
-                <p class="grey-text text-lighten-4">Unete al grupo de Telegram para recibir notificaciones.</p>
+                <p class="grey-text text-lighten-4">Únete al grupo de Telegram para recibir notificaciones.</p>
 				<p>Link del chat: <a href="https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw" target="_blank">Aquí</a></p>
               </div>
               <div class="col l4 offset-l2 s12">
@@ -178,8 +178,8 @@
                   <li><a class="grey-text text-lighten-3" href="#!">Materializecss</a></li>
                   <li><a class="grey-text text-lighten-3" href="#!">PHP + Mysql</a></li>
                   <li><a class="grey-text text-lighten-3" href="#!">Jquery</a></li>
-                  <li><a class="grey-text text-lighten-3" href="#!">Jquery ui</a></li>
 				  <li><a class="grey-text text-lighten-3" href="#!">Bootstrap</a></li>
+				  <li><a class="grey-text text-lighten-3" href="https://es.wikipedia.org/wiki/Single-page_application" target="_blank">SPA</a></li>
                 </ul>
               </div>
             </div>
@@ -187,7 +187,7 @@
           <div class="footer-copyright">
             <div class="container">
             © 2018 David Martín Pérez
-            <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
+            <a class="grey-text text-lighten-4 right" href="https://github.com/DavidMartinPerez/Roaload-Shop" target="_blank">Github Proyecto</a>
             </div>
           </div>
         </footer>

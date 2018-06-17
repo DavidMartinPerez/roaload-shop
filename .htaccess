@@ -8,8 +8,6 @@ RewriteEngine on
 RewriteRule ^principal$ index.php
 
 # Login - Registrarse
-RewriteRule ^login$ app/acceder/inicioSesion.php
-RewriteRule ^registrarse$ app/acceder/crearCuenta.php
 
 # Admin
 RewriteRule ^admin$ app/trastienda/admin.php

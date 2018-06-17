@@ -18,6 +18,9 @@
 
                 //localizamos si el usuario es administrador...
                 $row = mysqli_fetch_assoc($reg);
+                $fecha = date('YmdHis');
+                $sql2 = "UPDATE `usuario` SET `ultimoLog` = '$fecha' WHERE `idUsuario` = '".$row["idUsuario"]."'";
+                $bd->query($sql2);
                 $_SESSION["datos"] = serialize([
                     $row["nombre"],
                     $row["apellido"],
@@ -30,7 +33,6 @@
                     $_SESSION["rol"] = "admin";
                 }
                 return true;
-
             } else {
                 return false;
             }

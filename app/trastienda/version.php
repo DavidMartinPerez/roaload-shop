@@ -4,8 +4,18 @@
 	$campo = $_POST["campo"] ?? "idVersion"; //Sera por el campo que ordene
 	$orden = $_POST["orden"] ?? "ASC";  //Sera ASC o DESC
 
-    $objV = new Trastienda();
-    $reg = $objV->obtenerVersion($campo, $orden);
+	$objV = new Trastienda();
+	if(isset($_GET["des"])){
+		$objV->desJuego($_POST["id"]);
+	}
+	if(isset($_GET["hab"])){
+		$objV->habJuego($_POST["id"]);
+	}
+	if(isset($_GET["buscar"])){
+		$reg = $objV->buscarJuego($_POST["juego"]);
+	}else{
+		$reg = $objV->obtenerVersion($campo, $orden);
+	}
 ?>
 
 <div class="row">
@@ -19,25 +29,13 @@
 			<div class="col-md-8 col-md-offset-2">
 			<div class="panel-content">
 
-				<h5>Filtros</h5>
-				<select class="selectOrdenar browser-default col s3">
-					<option value="nombreJuego">Juego</option>
-					<option value="nombreEdicion">Edicion</option>
-					<option value="nombrePlataforma">Plataforma</option>
-					<option value="precio">Precio</option>
-					<option value="stock">Stock</option>
-					<option value="fechaSalida">Fecha Salida</option>
-					<option value="nombreDistribuidora">Distribuidora</option>
-				</select>
-				<select class="selectAlternal browser-default col s3">
-					<option value="ASC">Ascendente</option>
-					<option value="DESC">Descendente</option>
-				</select>
-				<button class="btn" onclick="ordenar()">Filtrar</button>
+				<h5>Buscar Por nombre juego</h5>
+				<input id="nombreJugarBuscar" type="text" />
+				<button class="btn" onclick="buscar()">Filtrar</button>
 				<br><br>
 
 				<h3 class="heading"><i class="fa fa-square"></i>Lista de Juegos con sus Versiones </h3>
-				<a id="<?=$row['idVersion'] ?>" onclick="modificarVersion(this)" class="editar"><button type="button" class="btn label label-success"><i class="material-icons">nueva versión</i></button></a>
+				<a id="<?=$row['idVersion'] ?>" onclick="versionNueva()" class="editar"><button type="button" class="btn label label-success"><i class="material-icons">nueva versión</i></button></a>
 				<div class="table-responsive">
 					<table class="table table-striped no-margin">
 					<thead>
@@ -64,13 +62,26 @@
 							<td class="fechaSalidaTabla"><?=$row["fechaSalida"] ?></td>
 							<td class="disTabla" id="<?=$row['idDistribuidora'] ?>"><?=$row["nombreDistribuidora"] ?></td>
 							<td class="habilitado"><?=$row['activo']?></td>
-							<td><a id="<?=$row['idVersion'] ?>" onclick="modificarVersion(this)" class="editar"><button type="button" class="btn label label-warning"><i class="material-icons">editar</i></button></a>
-							<a class="eliminarVersion" onclick="deshabilitar(this)" id="<?=$row['idVersion'] ?>">
-								<!-- FIXME: tooltip bootstrap -->
-								<button type="button" class="btn label label-danger" data-toggle="tooltip" data-placement="bottom" title="Deshabilita una versión de un videojuego por problemas o por que ya esta descatalogado">
-									<i class="material-icons">deshabilitar</i>
-								</button>
-							</a></td>
+							<td><a id="<?=$row['idVersion'] ?>" onclick="modificarVersin(this)" class="editar"><button type="button" class="btn label label-warning"><i class="material-icons">editar</i></button></a>
+							<?php 
+								if($row['activo'] == 0){ ?>
+								<a class="habilitarVersion" onclick="activarVersion(<?=$row['idVersion']?>)" id="<?=$row['idVersion'] ?>">
+									<!-- FIXME: tooltip bootstrap -->
+									<button type="button" class="btn label label-success" data-toggle="tooltip" data-placement="bottom" title="Deshabilita una versión de un videojuego por problemas o por que ya esta descatalogado">
+										<i class="material-icons">activar</i>
+									</button>
+								</a>
+							<?php } else {
+							?>
+								<a class="eliminarVersion" onclick="deshabilitarVersion(<?=$row['idVersion']?>)" id="<?=$row['idVersion'] ?>">
+									<!-- FIXME: tooltip bootstrap -->
+									<button type="button" class="btn label label-danger" data-toggle="tooltip" data-placement="bottom" title="Deshabilita una versión de un videojuego por problemas o por que ya esta descatalogado">
+										<i class="material-icons">deshabilitar</i>
+									</button>
+								</a>
+							<?php }
+							?>
+							</td>
 							</tr>
 							<?php }
 							?>
@@ -82,3 +93,32 @@
 		</div>
 	</div>
 </div>
+<!--  MODAL JUEGO NUEVO -->
+<div id="nuevoJuego" class="modal fade">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title">Nuevo Juego</h4>
+			</div>
+			<div class="modal-body">
+				<form id="nuevoJuegoForm" data-parsley-validate novalidate>
+					<div class="form-group">
+						<label for="text-input1">Nombre</label>
+						<input type="text" id="nombreJuegoNuevo" class="form-control" required />
+					</div>
+					<div class="form-group">
+						<label for="text-input2">Descripción</label>
+						<textarea type="text" id="descripcionJuegoNuevo" class="form-control" required data-parsley-minlength="10" required></textarea>
+					</div>
+					<br/>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+						<button type="submit" class="btn btn-success">Crear</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+<div>
+<!--  /.MODAL JUEGO NUEVO -->

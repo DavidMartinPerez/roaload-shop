@@ -68,5 +68,5 @@
 			</div>
 		</div>
 	</div>
-<div-->
+<div>
 <!--  /.MODAL JUEGO NUEVO -->

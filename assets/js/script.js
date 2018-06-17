@@ -1,6 +1,17 @@
 'use strict'
 
 $(document).ready(function(){
+    var preload = '<center style="padding-top:150px;padding-bottom:150px"><div class="preloader-wrapper big active">'+
+                                '<div class="spinner-layer spinner-blue-only">'+
+                                '<div class="circle-clipper left">'+
+                                '<div class="circle"></div>'+
+                                '</div><div class="gap-patch">'+
+                                '<div class="circle"></div>'+
+                                '</div><div class="circle-clipper right">'+
+                                '<div class="circle"></div>'+
+                                '</div>'+
+                                '</div>'+
+                            '</div></center>';
     home();
     var tarjeta = false;
     // MODALES INICIALES
@@ -9,45 +20,36 @@ $(document).ready(function(){
     }
     // MENSAJES DE COOKIE
     if(!getCookie('cookies')){
-        $('body').append('<div class="msgUsoCookie">Cookies<button onclick="aceptarCookies()">Aceptar</button><a class="btn" href="noCookies_noLife">Cancelar</button></div>');
+        $('body').append('<div class="msgUsoCookie">Esta web utiliza cookies para una experiencia mejor<button class="btn" onclick="aceptarCookies()">Aceptar</button><a class="btn" href="http://marvel.com/">Cancelar</button></div>');
     }
     // ATAJOS DE TECLADO PARA FUNCIONALIDADES DE LA WEB
     var atajoTeclado = true;
     $(document).keypress(function(e) {
         if(atajoTeclado == true){
-            console.log(e.charCode)
             if(e.charCode == 10){
                 console.log("atajo: abre sidenav");
                 $(".perfil-navbar").sideNav('show');
             }
-            if(e.charCode == 2){
-                console.log("atajo: Abre modal de de atajos");
-            }
-            if(e.charCode == 26){
-                console.log("atajo: ir al login")
-                location.href = location.href + "/login";
-            }
         }
     });
     //buscar datos en base de datos
+
     $( ".busInicio" ).keypress(function() {
-        $.get( "app/recuperarDatos.php", function( data ) {
-            alert( "Load was performed." );
-        });
-    });
-    var datos = {
-        "Kingdom Hearts": null,
-        "Mario Bros": null,
-        "Pokemon": null,
-    };
-    //autocompletado
-    $('input.autocomplete').autocomplete({
-        data: datos,
-        limit: 5, // The max amount of results that can be shown at once. Default: Infinity.
-        onAutocomplete: function(val) {
-            alert(val)
-        },
-        minLength: 3, // The minimum length of the input for the autocomplete to start. Default: 1.
+        if($(".busInicio").val().length > 2){
+            $(".contenido").html(preload);
+            setTimeout(function() {
+                $.ajax({
+                    type: "POST",
+                    url: "app/vistas/infoInicio.php?buscar",
+                    data: {
+                        texto: $(".busInicio").val()
+                    },
+                    success: function( response ) {
+                        $(".contenido").html(response);
+                    }
+                })
+            }, 900);
+        }
     });
 
     $('.perfil-navbar').sideNav({
@@ -98,8 +100,6 @@ function comprobarDatos(){
                 }
             }
         })
-    }else{
-        return false; //mark-2
     }
 }
 function cerrarSesion(){
@@ -114,8 +114,38 @@ function cerrarSesion(){
         }
     })
 }
-
-
+function registrarse(){
+    $.ajax({
+        type: "POST",
+        url: "app/vistas/registrarse.php",
+        success: function( result ) {
+            $(".contenido").html(result);
+            breadcrumControl(true,null,"Registrarse");
+        }
+    })
+}
+function comprobarDatosRegistro(){
+    var userLogin = $("#usuarioLogin").val();
+    var pass = $("#passwordLogin").val();
+    $.ajax({
+        type: "POST",
+        url: "app/dao/crearCuenta.php",
+        data: {
+            usr: userLogin,
+            pass: pass
+        },
+        success: function( data ) {
+            data = JSON.parse(data);
+            if(data["estado"] == "ok"){
+                iniciarSesion();
+                Materialize.toast('¡Perfecto!', 3000, 'green rounded');
+                Materialize.toast('Ahora... ¡Inicia sesión!', 3000, 'green rounded');
+            }else{
+                Materialize.toast(data["msg"], 3000, 'red rounded');
+            }
+        }
+    })
+}
 //function que caarga todo el contenido de inicio
 function home(){
     $.ajax({
@@ -130,7 +160,17 @@ function home(){
                 url: "app/vistas/infoInicio.php?nsw&init",
                 success: function(result){
                     $("#nswIndex").html(result);
+                }
+            });
+            $.ajax({
+                url: "app/vistas/infoInicio.php?vendidos",
+                success: function(result){
                     $("#vendidoIndex").html(result);
+                }
+            });
+            $.ajax({
+                url: "app/vistas/infoInicio.php?nuevos",
+                success: function(result){
                     $("#salidaIndex").html(result);
                 }
             });
@@ -179,10 +219,11 @@ function paginaPrincipal(){
     }});
 }
 
-function añadirCarrito(idP, precio){ //añade un producto o suma a uno existente a la cesta (guardada en sesion)
+function añadirCarrito(idP, precio, nombre){ //añade un producto o suma a uno existente a la cesta (guardada en sesion)
     $.get("app/carrito.php",{
         idA: idP,
-        precio : precio
+        precio : precio,
+        nombre: nombre
     },function(data){
         Materialize.toast('¡Añadido al carrito!', 3000, 'green rounded');
         $(".carritoP").html(data);
@@ -341,7 +382,6 @@ function terminarPago(){
         },
         success: function(result){
             result = JSON.parse(result);
-            console.log(result);
             if(result["estado"]){
                 var idL = result["idLocalizable"]
                 //redireccionar al resumen del pedido.
@@ -354,6 +394,11 @@ function terminarPago(){
                     },
                     success: function( data ) {
                         $(".contenido").html(data);
+                        $('.collapsible').collapsible({
+                            accordion: false, // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+                            onOpen: function(el) { }, // Callback for Collapsible open
+                            onClose: function(el) {  } // Callback for Collapsible close
+                        });
                     }
                 })
             }else{
@@ -391,10 +436,58 @@ function pedidosPendiente(){
         },
         success: function(data){
             $(".contenido").html(data);
+            breadcrumControl(true,"pedientes");
         }
     })
 }
 
+function todosPedidos(){
+    $.ajax({
+        url: 'app/vistas/listaPedidos.php',
+        method: 'POST',
+        data: {
+
+        },
+        success: function(data){
+            $(".contenido").html(data);
+            breadcrumControl(true,"Historial de pedidos");
+        }
+    })
+}
+
+function cancelarPedido(localizador, id){
+    $.ajax({
+        url: 'app/vistas/cancelarPedido.php',
+        method: 'POST',
+        data: {
+            idLocalizador: localizador,
+            idUsr: id
+        },
+        success: function(data){
+            data = JSON.parse(data);
+            console.log(data["pedido"]);
+            if(data["pedido"]==4){
+                Materialize.toast(data["msg"], 3000, 'green rounded');
+                todosPedidos();
+            }else{
+                Materialize.toast(data["msg"], 3000, 'red rounded');
+            }
+        }
+    })
+}
+function loRecibi(localizador){
+    $.ajax({
+        type: "POST",
+        url: "app/vistas/cancelarPedido.php?completado",
+        data: {
+            localizador: localizador
+        },
+        success: function( data ) {
+            Materialize.toast("Muchas gracias por todo el apoyo!", 3000, 'green rounded');
+            todosPedidos();
+        }
+    })
+}
 function verPedido(id){
     $.ajax({
         type: "GET",
@@ -404,6 +497,58 @@ function verPedido(id){
         },
         success: function( data ) {
             $(".contenido").html(data);
+            $('.collapsible').collapsible({
+                accordion: false, // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+                onOpen: function(el) { }, // Callback for Collapsible open
+                onClose: function(el) {  } // Callback for Collapsible close
+            });
+            breadcrumControl(true,"Resumen Pedido");
         }
     })
+}
+
+// SOPORTE TECNICO
+//se mandara correo al usuario para informarlo atravez de correo :( prox. en web
+
+function ayudar(){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/soporteTecnico.php",
+        success: function( data ) {
+            $(".contenido").html(data);
+            breadcrumControl(true,"Soporte Técnico");
+            $(document).ready(function(){
+                $('ul.tabs').tabs();
+            });
+            $('#mensaje').val('Querido soporte mi duda es: ');
+            $('#mensaje').trigger('autoresize');
+            Materialize.updateTextFields();
+        }
+    })
+}
+function enviarMensaje(){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/soporteTecnico.php?guardar",
+        method: "POST",
+        data: {
+            nombre: $('#nombre').val(),
+            correo: $('#email').val(),
+            mensaje: $('#mensaje').val()
+        },
+        success: function( data ) {
+            Materialize.toast("¡En breve te ayudaremos!", 3000, 'green rounded');
+            home();
+        }
+    })
+}
+
+function eliminarUno(id){
+    $.get("app/carrito.php?idE",{
+        idE: id,
+    },function(data){
+        Materialize.toast('Eliminado!', 3000, 'red rounded');
+        $(".contenido").html(data);
+        cargarPerfil();
+    });
 }

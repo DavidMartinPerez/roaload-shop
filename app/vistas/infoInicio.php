@@ -94,9 +94,36 @@ if(isset($_GET["reserva"])){
 if(isset($_GET["accesorios"])){
     //TODO: Termninar
 }
+if(isset($_GET["vendidos"])){
+    $objP = new Producto;
+    $reg = $objP->masvendidos();
+}
+if(isset($_GET["nuevos"])){
+    $objP = new Producto;
+    $reg = $objP->nuevos();
+}
+if(isset($_GET["buscar"])){
+    $pagina = $_GET["pagina"] ?? 1;
+    $limit = $_GET["filtro"] ?? 20;
+    $nombrePlt = 'todo';
+    $texto = $_POST["texto"];
+    $objP = new Producto;
+    $datos = $objP->buscarProducto($pagina,$limit,$texto);
 
-if($reg == NULL){
-    echo "<div class='container'>Lo sentimos no hemos encontrado nada :(</div>";
+    $reg = $datos[0]; // registro de los productos
+}
+
+if($reg == NULL || $reg->num_rows == 0){
+    ?>
+    <div class="container">
+        <div class="row">
+            <div class="col s12 m12">
+                <center><h3>¡Que nada te detenga!</h3></center>
+                <img src="assets/img/404.jpg" width="100%" height="100%"/>
+            </div>
+        </div>
+    </div>
+    <?php
 }else{
 
 ?>
@@ -115,7 +142,7 @@ if($reg == NULL){
             $img = $row["img"];
         }
         ?>
-        <div class="col m4 l3">
+        <div class="col s10 offset-s1 m4 l3">
             <div class="card carta-margin">
                 <div class="center-align <?=$row['nombrePlataforma']?>"><?=$row["nombrePlataforma"]?></div>
                 <div class="card-image">
@@ -124,8 +151,12 @@ if($reg == NULL){
                 <p style="height: 80px" class="card-title center-align"><?=$row["nombreJuego"]?></p>
                 <p class="center-align"><?=$row["nombreEdicion"]?>
                 <div class="card-action center-align">
-                    <span class="pink-text"><?=$row["precio"]?> €</span>
-                    <a onclick="añadirCarrito(this.id, <?=$row["precio"]?>)" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
+                    <?php if($row["stock"]<=0){?>
+                        <span class="pink-text" style="font-size:24px">¡Agotado!</span>
+                    <?php }else{ ?>
+                    <span class="pink-text" style="font-size:24px"><?=$row["precio"]?> €</span>
+                    <a onclick="añadirCarrito(this.id, <?=$row["precio"]?>, '<?=$row['nombreJuego']?>')" id="<?=$row['idVersion']?>" class="btn-floating halfway-fab waves-effect waves-light green"><i class="material-icons">shopping_cart</i></a>
+                    <?php } ?>
                 </div>
             </div>
         </div>

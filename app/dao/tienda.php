@@ -32,6 +32,11 @@
             $sqlPedidos = "INSERT INTO `productoscomprados`(`idPedido`, `idProducto`, `cantidad`, `precio`) VALUES";
             while($length > $i){
                 $idProducto = $productos[$i]['id'];
+                //AUMENTAR VENTAS DE ESE PRODUCTO Y DISMINUIR STOCK
+                $sqlStock = "UPDATE versionjuego SET stock= stock-1 WHERE idVersion='$idProducto'";
+                $bd->query($sqlStock);
+                $sqlVentas = "UPDATE versionjuego SET ventas=ventas+1 WHERE idVersion='$idProducto'";
+                $bd->query($sqlVentas);
                 $cantidadProducto = $productos[$i]["cantidad"];
                 $precioProducto = $productos[$i]["precioUnidad"];
                 if(!$i == 0){
@@ -41,7 +46,6 @@
                 $i++;
             }
             $resPedido = $bd->query($sqlPedidos);
-            //TODO: COMPROBAR QUE LAS CONSULTAS SE REALIZARON BIEN
             if($resCrearPedido == $resPedido){
                 return '{"estado": true, "msg":"¡Gracias por su compra!", "idLocalizable":"'.$idCalculada.'"}';
             } else{
@@ -84,7 +88,7 @@
         }//localizarProductos
         public function pedidosPendientes($idUsr){
             global $bd;
-            $sql = "SELECT * FROM `pedido` WHERE `idEstado` != 3 AND `idEstado` != 4 AND idUsuario = $idUsr";
+            $sql = "SELECT * FROM `pedido` WHERE `idEstado` != 3 AND `idEstado` != 4 AND idUsuario = $idUsr ORDER BY `fechaPedido` DESC";
 
             $reg = $bd->query($sql);
 
@@ -92,11 +96,47 @@
         }//pedidosPendientes
         public function todosPedidos($idUser){
             global $bd;
-            $sql = "SELECT * FROM `pedido` WHERE idUsuario = $idUser";
+            $sql = "SELECT * FROM `pedido` WHERE idUsuario = $idUser ORDER BY `fechaPedido` DESC";
 
             $reg = $bd->query($sql);
 
             return $reg;
         }//todosPedidos
-    } //class RealizarPedido
+
+        public function cancelarPedido($localizador, $idUser){
+            global $bd;
+
+
+            $sqlComprobar = "SELECT idEstado FROM pedido WHERE idLocalizador = '$localizador'";
+            $reg = $bd->query($sqlComprobar); //Ejecuta la sentencia
+            if($reg->num_rows) {
+                $row = mysqli_fetch_assoc($reg);
+                if($row["idEstado"] == 1){
+                    $fecha = date('YmdHis');
+                    $sqlActualizar = "UPDATE `pedido` SET `idEstado`=4,`fechaFinPedido`='$fecha' WHERE `idLocalizador` = '$localizador'";
+                    $reg = $bd->query($sqlActualizar);
+                    return '{"pedido":4,"msg":"Tu pedido ha sido cancelado"}';
+                }else{
+                    return '{"pedido":2,"msg":"¡Tu pedido ha sido pagado! Por favor explicanos en un mensaje al soporte técnico"}';
+                }
+            }
+        }//
+        public function pedidoRecibido($localizador){
+            global $bd;
+
+            $fecha = date('YmdHis');
+            $sqlActualizar = "UPDATE `pedido` SET `idEstado`=3,`fechaFinPedido`='$fecha' WHERE `idLocalizador` = '$localizador'";
+            $reg = $bd->query($sqlActualizar);
+            return $reg;
+        }//
+        public function mensajeSoporte($id,$nombre,$correo,$mensaje){
+            global $bd;
+            //INSERT INTO `mensaje`(`idMesaje`, `idUser`, `nombre`, `correo`, `mensaje`, `fecha`) VALUES (null,$id,'$nombre','$correo','$mensaje','$fecha')
+            $fecha = date('YmdHis');
+            $sqlMensaje = "INSERT INTO `mensaje`(`idMesaje`, `idUser`, `nombre`, `correo`, `mensaje`, `fecha`) VALUES (null,$id,'$nombre','$correo','$mensaje','$fecha')";
+
+            $reg = $bd->query($sqlMensaje);
+            return $reg;
+        }
+    } //class Pedido
 ?>

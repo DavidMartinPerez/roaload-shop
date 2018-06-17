@@ -3,28 +3,27 @@
 	<div class="slider ">
 		<ul class="slides">
 			<li><!-- TODO: Personalizar las noticias iniciales. -->
-				<img src="https://professor-falken.com/wp-content/uploads/2017/07/montanas-picos-vistas-horizonte-lejania-altura-cordillera-Fondos-de-Pantalla-HD-professor-falken.com_.jpg">
+				<img src="assets/img/banner1.jpg">
 				<div class="caption center-align">
 					<h3>¡Bienvenido a Roaload!</h3>
-					<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
+					<h5 class="light grey-text text-lighten-3">A la que será tu tienda favorita.</h5>
 				</div>
 			</li>
 			<li>
-				<img src="">
+				<img src="assets/img/banner2.jpg">
 				<div class="caption left-align">
-					<h3>Left Aligned Caption</h3>
-					<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
+					<h3 class="red">Compra tus juegos favoritos</h3>
 				</div>
 			</li>
 			<li>
-				<img src="">
+				<img src="assets/img/banner3.jpg">
+				<!--http://www.gamedynamo.com/images/galleries/photo/1465/10-epic-game-videos-part-1-banner.jpg-->
 				<div class="caption right-align">
-					<h3>Right Aligned Caption</h3>
-					<h5 class="light grey-text text-lighten-3">Here's our small slogan.</h5>
 				</div>
 			</li>
 			<li>
-				<img src="">
+				<img src="assets/img/banner4.jpg">
+				<!--http://images6.fanpop.com/image/photos/36200000/Games-image-games-36282565-1191-670.jpg-->
 				<div class="caption center-align">
 				</div>
 			</li>
@@ -48,7 +47,7 @@
 			<nav>
 				<div class="nav-wrapper teal lighten-1">
 					<div class="col s12">
-						<a class="breadcrumb">PRÓXIMAS SALIDAS</a>
+						<a class="breadcrumb">LO + NUEVO</a>
 					</div>
 				</div>
 			</nav>

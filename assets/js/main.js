@@ -2,7 +2,7 @@
 
 $(document).ready(function(){
 	// sparkline charts
-	var sparklineNumberChart = function() {
+	function sparklineNumberChart() {
 
 		var params = {
 			width: '140px',
@@ -25,159 +25,16 @@ $(document).ready(function(){
 
 	sparklineNumberChart();
 
-
-	// traffic sources
-	var dataPie = {
-		series: [45, 25, 30]
-	};
-
-	var labels = ['Direct', 'Organic', 'Referral'];
-	var sum = function(a, b) {
-		return a + b;
-	};
-
-	new Chartist.Pie('#demo-pie-chart', dataPie, {
-		height: "270px",
-		labelInterpolationFnc: function(value, idx) {
-			var percentage = Math.round(value / dataPie.series.reduce(sum) * 100) + '%';
-			return labels[idx] + ' (' + percentage + ')';
-		}
-	});
+    $.ajax({
+        url: "app/trastienda/pedidosInicio.php",
+        success: function(result){
+            $(".tabla").html(result);
+        }
+    });
 
 
-	// progress bars
-	$('.progress .progress-bar').progressbar({
-		display_text: 'none'
-	});
-
-	// line chart
-	var data = {
-		labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-		series: [
-			[200, 380, 350, 480, 410, 450, 550],
-		]
-	};
-
-	var options = {
-		height: "200px",
-		showPoint: true,
-		showArea: true,
-		axisX: {
-			showGrid: false
-		},
-		lineSmooth: false,
-		chartPadding: {
-			top: 0,
-			right: 0,
-			bottom: 30,
-			left: 30
-		},
-		plugins: [
-			Chartist.plugins.tooltip({
-				appendToBody: true
-			}),
-			Chartist.plugins.ctAxisTitle({
-				axisX: {
-					axisTitle: 'Day',
-					axisClass: 'ct-axis-title',
-					offset: {
-						x: 0,
-						y: 50
-					},
-					textAnchor: 'middle'
-				},
-				axisY: {
-					axisTitle: 'Reach',
-					axisClass: 'ct-axis-title',
-					offset: {
-						x: 0,
-						y: -10
-					},
-				}
-			})
-		]
-	};
-
-	new Chartist.Line('#demo-line-chart', data, options);
 
 
-	// sales performance chart
-	var sparklineSalesPerformance = function() {
-
-		var lastWeekData = [142, 164, 298, 384, 232, 269, 211];
-		var currentWeekData = [352, 267, 373, 222, 533, 111, 60];
-
-		$('#chart-sales-performance').sparkline(lastWeekData, {
-			fillColor: 'rgba(90, 90, 90, 0.1)',
-			lineColor: '#5A5A5A',
-			width: '' + $('#chart-sales-performance').innerWidth() + '',
-			height: '100px',
-			lineWidth: '2',
-			spotColor: false,
-			minSpotColor: false,
-			maxSpotColor: false,
-			chartRangeMin: 0,
-			chartRangeMax: 1000
-		});
-
-		$('#chart-sales-performance').sparkline(currentWeekData, {
-			composite: true,
-			fillColor: 'rgba(60, 137, 218, 0.1)',
-			lineColor: '#3C89DA',
-			lineWidth: '2',
-			spotColor: false,
-			minSpotColor: false,
-			maxSpotColor: false,
-			chartRangeMin: 0,
-			chartRangeMax: 1000
-		});
-	}
-
-	sparklineSalesPerformance();
-
-	var sparkResize;
-	$(window).on('resize', function() {
-		clearTimeout(sparkResize);
-		sparkResize = setTimeout(sparklineSalesPerformance, 200);
-	});
-
-
-	// top products
-	var dataStackedBar = {
-		labels: ['Q1', 'Q2', 'Q3'],
-		series: [
-			[800000, 1200000, 1400000],
-			[200000, 400000, 500000],
-			[100000, 200000, 400000]
-		]
-	};
-
-	new Chartist.Bar('#chart-top-products', dataStackedBar, {
-		height: "250px",
-		stackBars: true,
-		axisX: {
-			showGrid: false
-		},
-		axisY: {
-			labelInterpolationFnc: function(value) {
-				return (value / 1000) + 'k';
-			}
-		},
-		plugins: [
-			Chartist.plugins.tooltip({
-				appendToBody: true
-			}),
-			Chartist.plugins.legend({
-				legendNames: ['NINTENDO', 'SONY', 'XBOX']
-			})
-		]
-	}).on('draw', function(data) {
-		if (data.type === 'bar') {
-			data.element.attr({
-				style: 'stroke-width: 30px'
-			});
-		}
-	});
 	// Mensaje de bienvenida
 	toastr.options.closeButton = true;
 	toastr.options.positionClass = 'toast-bottom-right';
@@ -191,7 +48,6 @@ $(document).ready(function(){
 function mostrarVista(vista){
     $.ajax({url: "app/trastienda/" + vista + ".php",
         success: function(result){
-            $("#cuerpo").empty();
             $("#cuerpo").html(result);
         }
     });
@@ -242,7 +98,7 @@ function juegoNuevo(){ // JUEGO NUEVO
                     toastr['error']("Fallo en el servidor...");
                 }
                 //FIXME: Añadir uno nuevo a la lista
-                //mostrarVista('juego');
+                mostrarVista('juego');
             },
             error: function(){
                 toastr.options.closeButton = true;
@@ -274,20 +130,23 @@ function plataformaNueva(){ // Plataforma nueva
                     toastr.options.showDuration = 1000;
                     toastr['success']("¡Listo!");
                 }else if(response == "false"){
+                    $("#nuevaPlataforma").modal('hide');
                     toastr.options.closeButton = true;
                     toastr.options.positionClass = 'toast-top-right';
                     toastr.options.showDuration = 1000;
                     toastr['error']("Ya existe esta Version...");
                 }else{
+                    $("#nuevaPlataforma").modal('hide');
                     toastr.options.closeButton = true;
                     toastr.options.positionClass = 'toast-top-right';
                     toastr.options.showDuration = 1000;
                     toastr['error']("Fallo en el servidor... Recuerda que no puedes usar numeros para empezar los nombres...");
                 }
                 //FIXME: Añadir uno nuevo a la lista
-                //mostrarVista('plataforma');
+                mostrarVista('plataforma');
             },
             error: function(){
+                $("#nuevaPlataforma").modal('hide');
                 toastr.options.closeButton = true;
                 toastr.options.positionClass = 'toast-top-right';
                 toastr.options.showDuration = 1000;
@@ -318,11 +177,13 @@ function edicionNueva(){ // Edicion nueva
                     toastr.options.showDuration = 1000;
                     toastr['success']("¡Listo!");
                 }else if(response == "false"){
+                    $("#nuevaEdicion").modal('hide');
                     toastr.options.closeButton = true;
                     toastr.options.positionClass = 'toast-top-right';
                     toastr.options.showDuration = 1000;
                     toastr['error']("Ya existe la edicion");
                 }else{
+                    $("#nuevaEdicion").modal('hide');
                     toastr.options.closeButton = true;
                     toastr.options.positionClass = 'toast-top-right';
                     toastr.options.showDuration = 1000;
@@ -331,9 +192,10 @@ function edicionNueva(){ // Edicion nueva
                 //TODO: RECAGAR LA LISTA CON EL NUEVO PRODUCTO o Añadir uno nuevo a la lista
                 console.log(response);
                 //FIXME: Añadir uno nuevo a la lista
-                //mostrarVista('edicion');
+                mostrarVista("edicion");
             },
             error: function(){
+                $("#nuevaEdicion").modal('hide');
                 toastr.options.closeButton = true;
                 toastr.options.positionClass = 'toast-top-right';
                 toastr.options.showDuration = 1000;
@@ -344,15 +206,74 @@ function edicionNueva(){ // Edicion nueva
 }
 function versionNueva(){ // CREAR UNA VERSIÓN
     //TODO: Realizar
+    $.ajax({
+        type: "POST",
+        url: "app/vistas/formularioVersion.php",
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    })
+}
+
+function guardarVersion(){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/guardarVersion.php",
+        data: {
+            nombreJuego: $("#idJuegoNuevo option:selected").text(),
+            nombrePlataforma: $("#plataformaJuegoNuevo option:selected").text(),
+            juego:  $("#idJuegoNuevo").val(),
+            edicion: $("#edicionJuegoNuevo").val(),
+            plataforma: $("#plataformaJuegoNuevo").val(),
+            distribuidora: $("#idDistribuidora").val(),
+            precio: $("#precioNuevo").val(),
+            stock: $("#stockNuevo").val(),
+            salida: $("#fechaNueva").val(),
+            img: $("#foto").val()
+        },
+        success: function(response){
+            mostrarVista("version");
+        }
+    });
 }
 // Eliminar Productos
 function deshabilitarVersion(idVersion){ // Deshabilitar
     //TODO: Deshabilitar un versión de un juego
-
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/version.php?des",
+        data: {
+            id: idVersion
+        },
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    });
 }
-// EDITAR
-
-// mensajes
+function activarVersion(id){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/version.php?hab",
+        data: {
+            id: id
+        },
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    });
+}
+function buscar(){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/version.php?buscar",
+        data: {
+            juego: $("#nombreJugarBuscar").val()
+        },
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    });
+}
 //################################################# DEPRECATED #############################################
 
 //#####Funcioens para Versiones
@@ -451,6 +372,34 @@ function nuevaVersionDEPRECATED(){
                 $("label.error").empty();
                 $("#formNuevoVersion")[0].reset();
             }
+        }
+    });
+}
+function usuario(){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/usuario.php",
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    });
+}
+
+function mensajes(){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/mensajes.php",
+        success: function(response){
+            $("#cuerpo").html(response);
+        }
+    });
+}
+function pedidos(){
+    $.ajax({
+        type: "POST",
+        url: "app/trastienda/pedidos.php?limit=10",
+        success: function(response){
+            $("#cuerpo").html(response);
         }
     });
 }

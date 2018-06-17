@@ -1,6 +1,6 @@
 <?php
     // Conexiones a la BBDD para sacar los registros de los select.
-    include "conexion.php";
+    include "../dao/conexion.php";
 
     $sqlSelectDistribuidora = "SELECT idDistribuidora, nombreDistribuidora FROM `distribuidora` WHERE 1";
     $sqlSelectPlataforma = "SELECT idPlataforma, nombrePlataforma FROM `plataforma` WHERE 1";
@@ -28,7 +28,7 @@
         </div>
         <div><br>
             Edicion:<br>
-            <select id="edicionJuegoNuevo" class="browser-default" name="edicionNV">
+            <select id="edicionJuegoNuevo" class="browser-default" name="edicionNV" required>
                 <?php while($rowEdi = mysqli_fetch_assoc($regEdicion)){ ?>
                     <option value="<?=$rowEdi["idEdicion"] ?>"><?=$rowEdi["nombreEdicion"] ?></option>
                 <?php } ?>
@@ -36,7 +36,7 @@
         </div><br>
         <div>
             Plataforma:<br>
-            <select id="plataformaJuegoNuevo" class="browser-default" name="plataformaNV">
+            <select id="plataformaJuegoNuevo" class="browser-default" name="plataformaNV" required>
                 <?php while($rowPtl = mysqli_fetch_assoc($regPlataforma)){ ?>
                     <option value="<?=$rowPtl["idPlataforma"] ?>"><?=$rowPtl["nombrePlataforma"] ?></option>
                 <?php } ?>
@@ -44,23 +44,28 @@
         </div><br>
         <div>
             Precio:<br>
-            <input type="number" id="precioNuevo" val="1" name="precioNV" />
+            <input type="number" id="precioNuevo" val="1" name="precioNV" required/>
         </div><br>
         <div>
             Stock:<br>
-            <input type="number" id="stockNuevo" val="1" name="stockNV" />
+            <input type="number" id="stockNuevo" val="1" name="stockNV" required/>
         </div><br>
         <div>
             Fecha Salida:<br>
-            <input id="fechaNueva" type="text" class="fechapicker" name="fechaNV">
+            <input id="fechaNueva" type="date" class="fechapicker" name="fechaNV" requiered>
         </div><br>
         <div>
             Distribuidora:<br>
-            <select id="idDistribuidora" class="browser-default" name="disNV">
+            <select id="idDistribuidora" class="browser-default" name="disNV" required>
                 <?php while($rowDis = mysqli_fetch_assoc($regDistribuidora)){ ?>
                     <option value="<?=$rowDis["idDistribuidora"] ?>"><?=$rowDis["nombreDistribuidora"] ?></option>
                 <?php } ?>
             </select>
-        </div>
+        </div><br>
+        <div>
+            Foto:<br>
+            <input id="foto" type="text" class="text" name="text" requiered>
+        </div><br>
     </form>
+    <button onclick="guardarVersion()">Guardar Version</button>
 </div>

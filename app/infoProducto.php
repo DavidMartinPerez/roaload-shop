@@ -11,9 +11,9 @@
 <a class="waves-effect waves-light btn  margenBoton" onclick="vistaPtl('<?=$ptl?>')" ><i class="material-icons left" style="margin-left: 15px;">arrow_back</i></a>
 <div class="container">
     <div class="row">
-        <h1 class="col s12"><?=$dato["nombreJuego"]?></h1>
-        <img src="assets/img/caratula/kh1.png" class="col s3"/>
-        <div class="col s2">
+        <h1 class="col s12" style="color:green"><?=$dato["nombreJuego"]?></h1>
+        <img src="assets/img/caratula/<?=$dato['img']?>" class="col s3"/>
+        <div class="col s2 letra-roboco">
             <label>PLATAFORMA:</label>
             <div class="center-align"><?=$dato["nombrePlataforma"]?></div>
             <br>
@@ -29,8 +29,8 @@
         </div>
     </div>
     <div class="row">
-        <h3>Descripción</h3>
-        <p class="col s12"><?=$dato["descripJuego"]?></p>
+        <h3 style="color:green">Descripción</h3>
+        <p class="col s12 letra-roboco"><?=$dato["descripJuego"]?></p>
     </div>
     <div class="center-align">
         <iframe width="80%" height="500" src="https://www.youtube.com/embed/ePpPVE-GGJw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>

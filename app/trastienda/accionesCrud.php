@@ -57,8 +57,9 @@ if(isset($_GET["plataforma"])){ // CRUD PARA PLATAFORMA
 if(isset($_GET["edicion"])){ // CRUD PARA EDICION
     if($_GET["accion"]=='crear'){
         $nombre = $_POST["nombre"];
+        $desc = $_POST["desc"];
 
-        $result = $obj->guardarGenerico('plataforma', $nombre); //1-> tabla, 2->nombre, 3->opcional[descripcion]
+        $result = $obj->guardarGenerico('edicion', $nombre, $desc); //1-> tabla, 2->nombre, 3->opcional[descripcion]
 
         if($result == true){
             echo "true";

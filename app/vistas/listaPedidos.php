@@ -21,7 +21,7 @@ if(isset($_GET["pendiente"])){
 
 ?>
 <div class="row">
-    <table class="container">
+    <table class="letra-roboco container responsive-table striped">
             <tr>
                 <th>Id Localizador</th>
                 <th>Fecha Pedido</th>
@@ -41,12 +41,32 @@ if(isset($_GET["pendiente"])){
                     <td><?=$row["fechaPedido"]?></td>
                     <?php
                         if(!isset($_GET["pendiente"])){
-                            echo "<td>" . $row["fechaFin"] . "</td>";
+                            if(isset($row["fechaFinPedido"])){
+                                echo "<td>" . $row["fechaFinPedido"] . "</td>";
+                            }else{
+                                echo "<td>---</td>";
+                            }
                         }
                     ?>
-                    <td><?=$row["idEstado"]?></td>
                     <td>
-                        <?php if(isset($_GET["pendiente"])){
+                        <?php
+
+                        if($row["idEstado"]==1){
+                            echo "<span style='color:orange'>Pendiente</span>";
+                        }
+                        if($row["idEstado"]==2){
+                            echo "<span style='color:blue'>Pagado</span>";
+                        }
+                        if($row["idEstado"]==3){
+                            echo "<span style='color:green'>Completado</span>";
+                        }
+                        if($row["idEstado"]==4){
+                            echo "<span style='color:red'>Cancelado</span>";
+                        }
+                        ?>
+                    </td>
+                    <td>
+                        <?php if(!isset($row["fechaFinPedido"])){
                             echo '<a class="btn-floating" onclick="cancelarPedido('.$row["idLocalizador"].','.$idUser.')"><i class="material-icons">do_not_disturb_on</i></a>';
                         } ?>
                         <a class="btn-floating" onclick="verPedido(<?=$row["idLocalizador"] ?>, <?=$idUser?>)"><i class="material-icons">dvr</i></a>

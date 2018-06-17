@@ -16,7 +16,7 @@ $reg = $objV->recuperarRegistros('plataforma');
 			<div class="col-md-8 col-md-offset-2">
 				<div class="panel-content">
 					<h3 class="heading"><i class="fa fa-square"></i> Lista de plataformas </h3>
-					<a href="#nuevaPlataforma" onclick="plataformaNueva()"><button type="button" class="btn label label-success"><i class="material-icons">Nueva Plataforma</i></button></a>
+					<a onclick="plataformaNueva()"><button type="button" class="btn label label-success"><i class="material-icons">Nueva Plataforma</i></button></a>
 					<div class="table-responsive">
 						<table class="table table-striped no-margin">
 						<thead>

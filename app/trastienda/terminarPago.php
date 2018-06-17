@@ -92,7 +92,8 @@ $datosPedidos = new DatosPedido($nombre,$apellidos,$dni,$calle,$numeroCalle,$ciu
 //TODO: TERMINAR ESTO
 $object = new Pedido;
 $estado = $object->realizarPedido($datosPedidos);
-
+//Eliminar el carrito!
+unset($_SESSION["carro"]);
 // Segun el estado que nos llega borramos carrito y reenviamos a perfil/pedidos/pendientes
 
     echo $estado;

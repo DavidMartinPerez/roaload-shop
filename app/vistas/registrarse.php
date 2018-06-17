@@ -1,0 +1,45 @@
+<div class="letra-roboco">
+<div class="letra-roboco">
+    <div class="section"></div>
+    <center>
+        <img class="responsive-img" style="width: 250px;" src="assets/img/favicon.png" />
+        <div class="section"></div>
+
+        <h5 class="indigo-text">Por favor, crea tus cuenta :)</h5>
+        <div class="section"></div>
+
+        <div class="container">
+            <div class="z-depth-1 grey lighten-4 row" style="display: inline-block; padding: 32px 48px 0px 48px; border: 1px solid #EEE;">
+                <div class="row">
+                    <div class="col s12">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input class="validate" type="text" name="usr" id="usuarioLogin" />
+                        <label for="text">Nombre de usuario</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input class="validate" type="password" name="pass" id="passwordLogin" />
+                        <label for="password">contraseña</label>
+                    </div>
+                    <label style="float: right;">
+                        <a class="pink-text" href=""><b>Acepto todos los términos!</b></a>
+                    </label>
+                </div>
+                <br/>
+                <center>
+                    <div class="row">
+                        <button onclick="comprobarDatosRegistro()" class="col s12 btn btn-large waves-effect teal darken-1">¡Registrarse!</button>
+                    </div>
+                </center>
+            </div>
+        </div>
+        <a class="btn teal darken-1" onclick="iniciarSesion()">Volver</a>
+        <a class="btn teal darken-1" onclick="home()">Inicio</a>
+    </center>
+    <div class="section"></div>
+    <div class="section"></div>
+</div>
