@@ -19,13 +19,13 @@
 		<!-- js de Jquery y Materialize -->
       	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="assets/js/materialize.min.js"></script>
-		<script src="http://malsup.github.com/jquery.form.js"></script> 
+		<script src="http://malsup.github.com/jquery.form.js"></script>
 		<!-- propio js -->
 		<script src="assets/js/script.js"></script>
 		<style>
 			body{
 				background-size: cover;
-				background :url('http://www.hdfondos.eu/pictures/2014/0301/1/orig_451968.jpg') -49% -7% fixed;
+				background :url('assets/img/orig_451968.jpg') -49% -7% fixed;
 			}
 			.n3DS{
 			    background: yellow;
@@ -171,6 +171,7 @@
                 <h5 class="white-text">Roaload</h5>
                 <p class="grey-text text-lighten-4">Únete al grupo de Telegram para recibir notificaciones.</p>
 				<p>Link del chat: <a href="https://t.me/joinchat/AAAAAEVY1AOMUGzFyMhsuw" target="_blank">Aquí</a></p>
+				<p>Nanual de uso de la aplicación: <a onclick="manualNoUser()">Aquí</a></p>
               </div>
               <div class="col l4 offset-l2 s12">
                 <h5 class="white-text">Tecnologias utilizadas</h5>

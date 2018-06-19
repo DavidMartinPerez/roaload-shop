@@ -42,7 +42,16 @@ $(document).ready(function(){
 	toastr['success']("Buenas días Administrador, ¿Qué tal?");
 
 });//Document ready
-
+//manual
+function manualAdmin(){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/documentacion.php?admin",
+        success: function( data ) {
+            $("#cuerpo").html(data);
+        }
+    })
+}
 //Rediracionamiento
 // VISTAS: version, edicion, juego, plataformas.
 function mostrarVista(vista){

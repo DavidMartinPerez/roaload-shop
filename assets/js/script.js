@@ -552,3 +552,22 @@ function eliminarUno(id){
         cargarPerfil();
     });
 }
+
+function docuUsu(){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/documentacion.php?usuario",
+        success: function( data ) {
+            $(".contenido").html(data);
+        }
+    })
+}
+function manualNoUser(){
+    $.ajax({
+        type: "GET",
+        url: "app/vistas/documentacion.php?nousuario",
+        success: function( data ) {
+            $(".contenido").html(data);
+        }
+    })
+}

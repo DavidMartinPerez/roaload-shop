@@ -25,6 +25,6 @@
 <br>
 <?php }else{ ?>
     <li style='padding-left: 20px'>No tienes productos</li>
-    <div style='padding-left: 20px'>Si no sabes como puedes sigue nuestra guía <a href="https://github.com/DavidMartinPerez/Roaload-Shop/blob/master/README.md" target="_blank">aquí</a></div>
+    <div style='padding-left: 20px'>Si no sabes como puedes sigue nuestra guía <a onclick="docuUsu()" target="_blank">aquí</a></div>
 
 <?php } ?>

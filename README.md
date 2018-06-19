@@ -25,6 +25,14 @@ deberás unirte a este  grupo de telegram [Este link](https://t.me/joinchat/AAAA
 - La API mas adelante se utilizará para avisar a los usuarios de sus pedidos(con permiso de los usuarios por las políticas de Telegram)
 - Y para servicios técnicos y dudas
 
+## Manuales de uso:
+[Documentación](https://drive.google.com/open?id=1RmlcbqAA5S2ar_pW_khgy0dS5rssXxUM6RHrsqash3c)
+
+[Usuario no Registrado](https://drive.google.com/open?id=1LendQuP_xr0j33kMA22I4I7YI23EYOokq3SVQcyw4VQ)
+
+[Usuario Registrado](https://drive.google.com/open?id=1UvdUvfToldLT_zaVoRzv0mhrGmmSnZS8BB8XTW0RY-k)
+
+[Usuario Administrador](https://drive.google.com/open?id=16dohug8rJTp1XZo0rK7haGwITZ_2OphV8KjbrhzpLRs)
 
 # Todo lo que puede ver un usuario no registrado
 ## Principalmente esta web destaca por solo terner una carga incial y no volver a recargar más. Podeis fijaros en la ruta que no cambia.

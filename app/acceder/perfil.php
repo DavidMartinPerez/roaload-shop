@@ -12,6 +12,7 @@
 		<p>Inicia sesion</p>
 		<p>para disfrutar del contenido ^^</p>
 		<a onclick="iniciarSesion()" class="btn">Iniciar</a>
+		<img src="assets/img/11.gif"  style="margin-top: 200px; width: 200px; height:500px"/>
 	</div>
 <!-- ./no logeado -->
 <?php } else{ ?>

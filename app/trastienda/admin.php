@@ -87,7 +87,7 @@
 							</li>
 							<!-- mensajes -->
 							<li class="dropdown">
-								<a href="" onclick="window.open('https://github.com/DavidMartinPerez/Roaload-Shop')" class="dropdown-toggle icon-menu" data-toggle="dropdown">
+								<a href="" onclick="manualAdmin()" class="dropdown-toggle icon-menu" data-toggle="dropdown">
 									<i class="lnr lnr-question-circle"></i>
 								</a>
 							</li>

@@ -14,10 +14,10 @@ $rowDatosPedido = mysqli_fetch_assoc($datosPedido);
 <div class="row letra-roboco">
     <?php
         if($rowDatosPedido["idEstado"] == 1){
-            echo '<a class="btn" onclick="loRecibi(<?=$localizador?>)">¡Lo he recibido!</a>';
+            echo '<a class="btn" onclick="loRecibi('.$localizador.')">¡Lo he recibido!</a>';
         }
         if($rowDatosPedido["idEstado"] == 2){
-            echo '<a class="btn" onclick="loRecibi(<?=$localizador?>)">¡Lo he recibido!</a>';
+            echo '<a class="btn" onclick="loRecibi('.$localizador.')">¡Lo he recibido!</a>';
         }
     ?>
     <div class="s12" style="margin-left: 10px">
