@@ -57,7 +57,6 @@
                     unset($array[$i]);
                 }else{
                     $array[$i]["cantidad"] = $cantidad-1;
-                    print_r($array[$i]);
                 }
                 $i = count($array);
             }
