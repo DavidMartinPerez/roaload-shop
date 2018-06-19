@@ -277,6 +277,8 @@ El formato con el que salen es: "Producto" x "Cantidad"
 
 ![ER](/00/clientes4.png "clientes")
 
+# ER
+![ER](/00/sql.png)
 
 # FIN de la Aplicación!
 -------------------------
